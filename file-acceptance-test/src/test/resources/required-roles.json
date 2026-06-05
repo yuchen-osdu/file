@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "PRIVILEGED_USER": [
+    "users",
+    "service.entitlements.user",
+    "service.file.editors",
+    "service.file.viewers",
+    "data.test1",
+    "data.integration.test"
+  ]
+}

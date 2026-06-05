@@ -17,332 +17,231 @@
 
 package org.opengroup.osdu.file.stepdefs;
 
-import java.io.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.opengroup.osdu.core.common.model.file.LocationResponse;
-import org.opengroup.osdu.file.constants.TestConstants;
-import org.opengroup.osdu.file.model.DownloadUrlResponse;
-import org.opengroup.osdu.file.model.filemetadata.RecordVersion;
-import org.opengroup.osdu.file.model.filemetadata.filedetails.DatasetProperties;
-import org.opengroup.osdu.file.model.filemetadata.filedetails.FileData;
-import org.opengroup.osdu.file.model.filemetadata.filedetails.FileSourceInfo;
-import org.opengroup.osdu.file.stepdefs.model.FileScope;
-import org.opengroup.osdu.file.stepdefs.model.HttpRequest;
-import org.opengroup.osdu.file.stepdefs.model.HttpResponse;
-import org.opengroup.osdu.file.util.AuthUtil;
-import org.opengroup.osdu.file.util.CommonUtil;
-import org.opengroup.osdu.file.util.HttpClientFactory;
-import org.opengroup.osdu.file.util.JsonUtils;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import io.cucumber.java8.En;
-import static org.junit.Assert.*;
+import lombok.extern.slf4j.Slf4j;
+import org.opengroup.osdu.core.common.model.file.LocationResponse;
+import org.opengroup.osdu.core.common.model.http.AppError;
+import org.opengroup.osdu.core.test.client.HttpResponse;
+import org.opengroup.osdu.core.test.client.model.file.DownloadUrlResponse;
+import org.opengroup.osdu.core.test.client.model.file.FileMetadataRecord;
+import org.opengroup.osdu.file.stepdefs.model.FileScope;
+import org.opengroup.osdu.file.util.ErrorResponseAssertions;
+import org.opengroup.osdu.file.util.FileClientExceptionSupport;
+import org.opengroup.osdu.file.util.FileUtils;
 
+@Slf4j
+@SuppressWarnings("unused")
 public class FileStepDef_GET implements En {
 
-	@Inject
-	private FileScope context;
+  @Inject
+  private FileScope context;
 
-	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-	Gson gsn = null;
-	Gson gsnActual = null;
+  public FileStepDef_GET() {
 
-	public FileStepDef_GET() {
-
-		Given("I generate user token and set request headers with {string}", (String tenant) -> {
-			if (this.context.getToken() == null) {
-				String token = new AuthUtil().getToken();
-				this.context.setToken(token);
-			}
-
-			if (this.context.getAuthHeaders() == null) {
-				Map<String, String> authHeaders = new HashMap<String, String>();
-				authHeaders.put(TestConstants.AUTHORIZATION, this.context.getToken());
-				authHeaders.put(TestConstants.DATA_PARTITION_ID, CommonUtil.selectTenant(tenant));
-				authHeaders.put(TestConstants.CONTENT_TYPE, TestConstants.JSON_CONTENT);
-				this.context.setAuthHeaders(authHeaders);
-			}
-		});
-
-		Given("I hit File service GET API with missing or invalid {string} and {string}",
-				(String header, String headerValue) -> {
-
-					if (TestConstants.AUTHORIZATION.equals(header))
-						this.context.getAuthHeaders().put(TestConstants.AUTHORIZATION, headerValue);
-
-					if (TestConstants.DATA_PARTITION_ID.equals(header))
-						this.context.getAuthHeaders().put(TestConstants.DATA_PARTITION_ID, headerValue);
-
-					HttpRequest httpRequest = HttpRequest.builder()
-							.url(TestConstants.HOST + TestConstants.GET_SIGNEDURL_UPLOAD_ENDPOINT)
-							.httpMethod(HttpRequest.GET).requestHeaders(this.context.getAuthHeaders()).build();
-
-					HttpResponse response = HttpClientFactory.getInstance().send(httpRequest);
-					this.context.setHttpResponse(response);
-
-					LOGGER.log(Level.INFO, "resp - " + response.toString());
-				});
-
-		Given("I hit File service GET uploadURL API", () -> {
-
-			HttpRequest httpRequest = HttpRequest.builder()
-					.url(TestConstants.HOST + TestConstants.GET_SIGNEDURL_UPLOAD_ENDPOINT).httpMethod(HttpRequest.GET)
-					.requestHeaders(this.context.getAuthHeaders()).build();
-
-			HttpResponse response = HttpClientFactory.getInstance().send(httpRequest);
-			this.context.setHttpResponse(response);
-			setNewFileSourceValue();
-			setUploadSignedUrl();
-
-			assertEquals("200", String.valueOf(response.getCode()));
-			LOGGER.log(Level.INFO, "resp - " + response.toString());
-		});
-
-		When("I try to use signed url after expiration period {string} and file path {string}",
-				(String expiredURL, String inputFilePath) -> {
-					int code = this.context.getFileUtils().uploadFileBySignedUrl(expiredURL, inputFilePath);
-					this.context.setResponseCode(new Integer(code).toString());
-
-				});
-
-		When("I try to use signed url within expiration period and file path {string}", (String inputFilePath) -> {
-
-			String response = this.context.getHttpResponse().getBody();
-			LocationResponse signedURLResp = JsonUtils.getPojoFromJSONString(LocationResponse.class, response);
-			assertNotNull(signedURLResp.getLocation().get("SignedURL"));
-			int code = this.context.getFileUtils().uploadFileBySignedUrl(signedURLResp.getLocation().get("SignedURL"), inputFilePath);
-			this.context.setResponseCode(new Integer(code).toString());
-		});
-
-		Then("service should respond back with a valid {string} and upload input file from {string}",
-				(String respCode, String inputFilePath) -> {
-					verifySuccessfulGetSignedURLResponse(respCode, inputFilePath);
-				});
-
-		Then("download service should respond back with a valid {string}", (String respCode) -> {
-			validateResponseCode(respCode);
-			String response = this.context.getHttpResponse().getBody();
-			DownloadUrlResponse signedURLResp = JsonUtils.getPojoFromJSONString(DownloadUrlResponse.class, response);
-			assertNotNull(context.getSignedUrl());
-		});
-
-		Then("metadata service should respond back with a valid {string}", (String respCode) -> {
-			validateResponseCode(respCode);
-			String response = this.context.getHttpResponse().getBody();
-			RecordVersion metadataResp = JsonUtils.getPojoFromJSONString(RecordVersion.class, response);
-		});
-
-    Then("Service should respond metadata with not null checksum {string}", (String respCode) ->{
-      validateResponseCode(respCode);
-      String response = this.context.getHttpResponse().getBody();
-      RecordVersion metadataResp = JsonUtils.getPojoFromJSONString(RecordVersion.class, response);
-      FileData fileData = metadataResp.getData();
-      DatasetProperties datasetProperties = fileData.getDatasetProperties();
-      FileSourceInfo fileSourceInfo = datasetProperties.getFileSourceInfo();
-      String checksum = fileSourceInfo.getChecksum();
-      assertNotNull(checksum);
+    Given("I generate user token and set request headers with {string}", (String tenant) -> {
+      // no-op: StringHttpClient handles auth and headers automatically
     });
 
-		Then("service should respond back with error {string} and {string}", (String errorCode, String errorMsg) -> {
-			verifyFailedResponse(errorCode, errorMsg);
-		});
+    Given("I hit File service GET API with missing or invalid {string} and {string}",
+        (String header, String headerValue) -> {
+          Map<String, String> customHeaders = new HashMap<>();
+          customHeaders.put(header, headerValue);
+          FileClientExceptionSupport.invokeExpectingFailure(
+              () -> context.getFileClient().getUploadUrl(null, customHeaders), context);
+          log.info("resp - {}", context.getLastStatusCode());
+        });
 
-		Then("service should respond back with error {string} or {string} and {string}",
-				(String errorCode, String alternateErrorCode, String errorMsg) -> {
-					validateResponseCode(errorCode, alternateErrorCode);
-				});
+    Given("I hit File service GET uploadURL API", () -> {
+      HttpResponse<LocationResponse> coreResp = context.getFileClient().getUploadUrl();
+      this.context.setLocationResponse(coreResp);
+      setNewFileSourceValue(coreResp.body());
+      setUploadSignedUrl(coreResp.body());
+      assertEquals("200", String.valueOf(coreResp.statusCode()));
+      log.info("resp - {}", coreResp.statusCode());
+    });
 
-		Then("service should respond back with error code {string}", (String errorCode) -> {
-			assertEquals(errorCode, this.context.getResponseCode());
-		});
+    When("I try to use signed url after expiration period {string} and file path {string}",
+        (String expiredURL, String inputFilePath) -> {
+          int code = FileUtils.uploadFileBySignedUrl(expiredURL, inputFilePath);
+          this.context.setResponseCode(Integer.toString(code));
+        });
 
-		Given("I hit File service GET download signed API with a valid Id", () -> {
-			String id = this.context.getId();
-			HttpRequest httpRequest = HttpRequest.builder()
-					.url(TestConstants.HOST + TestConstants.GET_SIGNEDURL_DOWNLOAD_ENDPOINT1 + id
-							+ TestConstants.GET_SIGNEDURL_DOWNLOAD_ENDPOINT2)
-					.httpMethod(HttpRequest.GET).requestHeaders(this.context.getAuthHeaders()).build();
+    When("I try to use signed url within expiration period and file path {string}", (String inputFilePath) -> {
+      LocationResponse signedUrlResponse = context.getLocationResponse().body();
+      assertNotNull(signedUrlResponse.getLocation().get("SignedURL"));
+      int code = FileUtils.uploadFileBySignedUrl(
+          signedUrlResponse.getLocation().get("SignedURL"), inputFilePath);
+      this.context.setResponseCode(Integer.toString(code));
+    });
 
-			HttpResponse response = HttpClientFactory.getInstance().send(httpRequest);
-			this.context.setHttpResponse(response);
-			LOGGER.log(Level.INFO, "resp - " + response.toString());
-		});
+    Then("service should respond back with a valid {string} and upload input file from {string}",
+        (String respCode, String inputFilePath) -> verifySuccessfulGetSignedURLResponse(respCode, inputFilePath));
 
-		Given("I hit File service GET metadata signed API with a valid Id", () -> {
-			String id = this.context.getId();
-			HttpRequest httpRequest = HttpRequest.builder()
-					.url(TestConstants.HOST + TestConstants.GET_SIGNEDURL_DOWNLOAD_ENDPOINT1 + id
-							+ TestConstants.GET_METADATA_ENDPOINT2)
-					.httpMethod(HttpRequest.GET).requestHeaders(this.context.getAuthHeaders()).build();
-			HttpResponse response = HttpClientFactory.getInstance().send(httpRequest);
-			this.context.setHttpResponse(response);
-			LOGGER.log(Level.INFO, "resp - " + response.toString());
-		});
+    Then("download service should respond back with a valid {string}", (String respCode) -> {
+      validateResponseCode(respCode);
+      assertNotNull(context.getSignedUrl());
+    });
 
-		Given("I hit File service GET metadata signed API with an {string}", (String invalidId) -> {
-			String id = this.context.getId();
-			HttpRequest httpRequest = HttpRequest.builder()
-					.url(TestConstants.HOST + TestConstants.GET_SIGNEDURL_DOWNLOAD_ENDPOINT1 + invalidId
-							+ TestConstants.GET_METADATA_ENDPOINT2)
-					.httpMethod(HttpRequest.GET).requestHeaders(this.context.getAuthHeaders()).build();
-			HttpResponse response = HttpClientFactory.getInstance().send(httpRequest);
-			this.context.setHttpResponse(response);
-			LOGGER.log(Level.INFO, "resp - " + response.toString());
-		});
+    Then("metadata service should respond back with a valid {string}", (String respCode) -> {
+      validateResponseCode(respCode);
+      assertNotNull(context.getMetadataRecordResponse().body());
+    });
 
-		When("I hit signed url to download a file within expiration period at {string}", (String outputFilePath) -> {
-			String response = this.context.getHttpResponse().getBody();
-			String downLoadUrl = this.context.getSignedUrl();
-			this.context.getFileUtils().readFileBySignedUrlAndWriteToLocalFile(downLoadUrl, outputFilePath);
-		});
+    Then("Service should respond metadata with not null checksum {string}", (String respCode) -> {
+      validateResponseCode(respCode);
+      FileMetadataRecord metadata = context.getMetadataRecordResponse().body();
+      assertNotNull("Metadata response body is null", metadata);
+      assertNotNull("Metadata data is null", metadata.data());
+      assertNotNull("DatasetProperties is null", metadata.data().datasetProperties());
+      assertNotNull("FileSourceInfo is null", metadata.data().datasetProperties().fileSourceInfo());
+      String checksum = metadata.data().datasetProperties().fileSourceInfo().checksum();
+      assertNotNull("Checksum is null in metadata response", checksum);
+    });
 
-		When("content of the file uploaded {string} and downloaded {string} files is same",
-				(String outputFilePath, String inputFilePath) -> {
-					compareFileContent(outputFilePath, inputFilePath);
-				});
+    Then("service should respond back with error {string} and {string}", (String errorCode, String errorMsg) ->
+        verifyFailedResponse(errorCode, errorMsg));
 
-		When("I hit File service GET download signed API with a valid Id and expiry",
-				() -> {
-					String id = this.context.getId();
+    Then("service should respond back with error {string} or {string} and {string}",
+        (String errorCode, String alternateErrorCode, String errorMsg) ->
+            validateResponseCode(errorCode, alternateErrorCode));
 
-					Map<String, String> queryParam = new HashMap<>();
-          //updating the expiry time, if configured from env variable
-          String expiryTimeInMinutes = CommonUtility.getSignedURLExpiryTime();
-          LOGGER.log(Level.INFO, "Configured Expiry Time for Signed URL is " + expiryTimeInMinutes);
+    Then("service should respond back with error code {string}", (String errorCode) ->
+        assertEquals(errorCode, this.context.getResponseCode()));
 
-					queryParam.put(TestConstants.EXPIRY_TIME_PARA_NAME, expiryTimeInMinutes + "M");
+    Given("I hit File service GET download signed API with a valid Id", () -> {
+      String id = this.context.getId();
+      HttpResponse<DownloadUrlResponse> coreResp = context.getFileClient().getDownloadUrl(id);
+      this.context.setDownloadUrlResponse(coreResp);
+      log.info("resp - {}", coreResp.statusCode());
+    });
 
-					HttpRequest httpRequest = HttpRequest.builder()
-							.url(TestConstants.HOST + TestConstants.GET_SIGNEDURL_DOWNLOAD_ENDPOINT1 + id
-									+ TestConstants.GET_SIGNEDURL_DOWNLOAD_ENDPOINT2)
-							.queryParams(queryParam).httpMethod(HttpRequest.GET)
-							.requestHeaders(this.context.getAuthHeaders()).build();
+    Given("I hit File service GET metadata signed API with a valid Id", () -> {
+      String id = this.context.getId();
+      HttpResponse<FileMetadataRecord> coreResp = context.getFileClient().getMetadata(id);
+      this.context.setMetadataRecordResponse(coreResp);
+      log.info("resp - {}", coreResp.statusCode());
+    });
 
-					HttpResponse response = HttpClientFactory.getInstance().send(httpRequest);
-					this.context.setHttpResponse(response);
-				});
+    Given("I hit File service GET metadata signed API with an {string}", (String invalidId) -> {
+      FileClientExceptionSupport.invokeExpectingFailure(
+          () -> context.getFileClient().getMetadata(invalidId), context);
+      log.info("resp - {}", context.getLastStatusCode());
+    });
 
-		Then("I should be able to download the file within expiry period", () -> {
-			String response = this.context.getHttpResponse().getBody();
-			DownloadUrlResponse signedURLResp = JsonUtils.getPojoFromJSONString(DownloadUrlResponse.class, response);
-			assertNotNull("No download url returned by service.", signedURLResp.getSignedUrl());
-			URL url = new URL(signedURLResp.getSignedUrl());
-			URLConnection conn = url.openConnection();
-			try {
-				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-				assertNotNull("No content present in the file downloaded using download url.",
-						readDownloadedFileContent(br));
-			} catch (IOException ex) {
-				LOGGER.log(Level.INFO, "Exception accessing download url - " + ex.getMessage());
-				fail("Failed to download the file within expiry time");
-			}
-		});
+    When("I hit signed url to download a file within expiration period at {string}", (String outputFilePath) -> {
+      String downLoadUrl = this.context.getSignedUrl();
+      FileUtils.readFileBySignedUrlAndWriteToLocalFile(downLoadUrl, outputFilePath);
+    });
 
-		And("I should not be able to download the file after expiry period", () -> {
-			// wait for timeout to expire
-			CommonUtility.customStaticWait_Timeout_Minutes();
+    When("content of the file uploaded {string} and downloaded {string} files is same",
+        (String outputFilePath, String inputFilePath) -> compareFileContent(outputFilePath, inputFilePath));
 
-			String response = this.context.getHttpResponse().getBody();
-			DownloadUrlResponse signedURLResp = JsonUtils.getPojoFromJSONString(DownloadUrlResponse.class, response);
-			URL url = new URL(signedURLResp.getSignedUrl());
-			URLConnection conn = url.openConnection();
-			try {
-				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-				LOGGER.log(Level.INFO, "Value of line read from file - " + readDownloadedFileContent(br));
-				fail("File could be downloaded even after expiry time");
-			} catch (IOException ex) {
-				LOGGER.log(Level.INFO, "As expected, Exception occured accessing download url post expiry period - "
-						+ ex.getMessage());
-			}
-		});
+    When("I hit File service GET download signed API with a valid Id and expiry", () -> {
+      String id = this.context.getId();
+      String expiryTimeInMinutes = CommonUtility.getSignedURLExpiryTime();
+      log.info("Configured Expiry Time for Signed URL is {}", expiryTimeInMinutes);
+      HttpResponse<DownloadUrlResponse> coreResp =
+          context.getFileClient().getDownloadUrl(id, expiryTimeInMinutes + "M", Map.of());
+      this.context.setDownloadUrlResponse(coreResp);
+    });
 
-	}
+    Then("I should be able to download the file within expiry period", () -> {
+      DownloadUrlResponse signedUrlResponse = context.getDownloadUrlResponse().body();
+      assertNotNull("No download url returned by service.", signedUrlResponse.signedUrl());
+      URL url = new URL(signedUrlResponse.signedUrl());
+      URLConnection conn = url.openConnection();
+      try {
+        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        assertNotNull("No content present in the file downloaded using download url.",
+            readDownloadedFileContent(br));
+      } catch (IOException ex) {
+        log.info("Exception accessing download url - {}", ex.getMessage());
+        fail("Failed to download the file within expiry time");
+      }
+    });
+
+    And("I should not be able to download the file after expiry period", () -> {
+      CommonUtility.customStaticWait_Timeout_Minutes();
+      DownloadUrlResponse signedUrlResponse = context.getDownloadUrlResponse().body();
+      URL url = new URL(signedUrlResponse.signedUrl());
+      URLConnection conn = url.openConnection();
+      try {
+        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        log.info("Value of line read from file - {}", readDownloadedFileContent(br));
+        fail("File could be downloaded even after expiry time");
+      } catch (IOException ex) {
+        log.info("As expected, Exception occured accessing download url post expiry period - {}",
+            ex.getMessage());
+      }
+    });
+  }
 
   private String readDownloadedFileContent(BufferedReader br) throws IOException {
-		String inputLine;
-		StringBuilder downloadedFile = new StringBuilder();
-		while ((inputLine = br.readLine()) != null) {
-			downloadedFile.append(inputLine);
-		}
-		return new String(downloadedFile);
-	}
+    String inputLine;
+    StringBuilder downloadedFile = new StringBuilder();
+    while ((inputLine = br.readLine()) != null) {
+      downloadedFile.append(inputLine);
+    }
+    return downloadedFile.toString();
+  }
 
-	private void compareFileContent(String outputFilePath, String inputFilePath) throws IOException {
-		String outputContent = this.context.getFileUtils().readFromLocalFilePath(outputFilePath);
-		String inputContent = this.context.getFileUtils().readFromLocalFilePath(inputFilePath);
-		assertTrue(outputContent.contentEquals(inputContent));
-	}
+  private void compareFileContent(String outputFilePath, String inputFilePath) throws IOException {
+    String outputContent = FileUtils.readFromLocalFilePath(outputFilePath);
+    String inputContent = FileUtils.readFromLocalFilePath(inputFilePath);
+    assertTrue(outputContent.contentEquals(inputContent));
+  }
 
-	private void verifySuccessfulGetSignedURLResponse(String responseCode, String inputFilePath)
-			throws InterruptedException, IOException {
-		validateResponseCode(responseCode);
+  private void verifySuccessfulGetSignedURLResponse(String responseCode, String inputFilePath) {
+    validateResponseCode(responseCode);
+    LocationResponse signedUrlResponse = context.getLocationResponse().body();
+    assertNotNull(signedUrlResponse);
+    assertNotNull(signedUrlResponse.getLocation().get("SignedURL"));
+    assertNotNull(signedUrlResponse.getLocation().get("FileSource"));
 
-		String response = this.context.getHttpResponse().getBody();
-		LocationResponse signedURLResp = JsonUtils.getPojoFromJSONString(LocationResponse.class, response);
+    int code;
+    try {
+      code = FileUtils.uploadFileBySignedUrl(
+          signedUrlResponse.getLocation().get("SignedURL"), inputFilePath);
+    } catch (IOException e) {
+      fail("Fail to call signed URL because of message=" + e.getMessage());
+      return;
+    }
+    assertTrue(code == 200 || code == 201);
+  }
 
-		assertNotNull(signedURLResp);
-		assertNotNull(signedURLResp.getLocation().get("SignedURL"));
-		assertNotNull(signedURLResp.getLocation().get("FileSource"));
+  private void validateResponseCode(String responseCode) {
+    assertEquals(responseCode, String.valueOf(this.context.getLastStatusCode()));
+  }
 
-		int code = 0;
-		try {
-			code = this.context.getFileUtils().uploadFileBySignedUrl(signedURLResp.getLocation().get("SignedURL"), inputFilePath);
-		} catch (IOException e) {
-			fail("Fail to call signed URL because of message=" + e.getMessage());
-		}
+  private void validateResponseCode(String responseCode, String alternateResponseCode) {
+    assertTrue(responseCode.equals(String.valueOf(this.context.getLastStatusCode()))
+        || alternateResponseCode.equals(String.valueOf(this.context.getLastStatusCode())));
+  }
 
-		// Both 200 and 201 response codes indicate success in PUT calls.
-		assertTrue(code == 200 || code == 201);
-	}
+  private void setNewFileSourceValue(LocationResponse response) {
+    log.info("[DEBUG] GET uploadURL body: {}", response);
+    this.context.setFileSource(response.getLocation().get("FileSource"));
+  }
 
-	private void validateResponseCode(String responseCode) {
-		int respCode = this.context.getHttpResponse().getCode();
-		assertEquals(responseCode, String.valueOf(respCode));
-	}
+  private void setUploadSignedUrl(LocationResponse response) {
+    this.context.setSignedUrl(response.getLocation().get("SignedURL"));
+  }
 
-	private void validateResponseCode(String responseCode, String alternateResponseCode) {
-		HttpResponse response = this.context.getHttpResponse();
-		if (response != null) {
-			assertTrue(responseCode.equals(String.valueOf(response.getCode()))
-					|| alternateResponseCode.equals(String.valueOf(response.getCode())));
-		}
-	}
-
-	private void setNewFileSourceValue() throws IOException {
-		String response = this.context.getHttpResponse().getBody();
-		gsn = new Gson();
-		JsonObject root = gsn.fromJson(response, JsonObject.class);
-		this.context.setFileSource(root.get("Location").getAsJsonObject().get("FileSource").getAsString());
-	}
-
-	private void setUploadSignedUrl() throws IOException {
-		String response = this.context.getHttpResponse().getBody();
-		gsn = new Gson();
-		JsonObject root = gsn.fromJson(response, JsonObject.class);
-		this.context.setSignedUrl(root.get("Location").getAsJsonObject().get("SignedURL").getAsString());
-	}
-
-	private void verifyFailedResponse(String statusCode, String respMsg) throws IOException {
-
-		HttpResponse actualResponse = this.context.getHttpResponse();
-		validateResponseCode(statusCode);
-
-		gsnActual = new Gson();
-
-		String expectedRespStr = this.context.getFileUtils().readFromLocalFilePath(respMsg);
-		Gson gsnExpected = new Gson();
-		JsonObject expectedResponseJO = gsnExpected.fromJson(expectedRespStr, JsonObject.class);
-		JsonObject actualResponseJO = gsnActual.fromJson(actualResponse.getBody().toString(), JsonObject.class);
-
-		assertEquals(expectedResponseJO.toString(), actualResponseJO.toString());
-
-	}
-
+  private void verifyFailedResponse(String statusCode, String respMsg) {
+    validateResponseCode(statusCode);
+    ErrorResponseAssertions.assertApiErrorResponse(respMsg, this.context.getClientException());
+  }
 }
