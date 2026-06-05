@@ -19,245 +19,247 @@ package org.opengroup.osdu.file.stepdefs;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+import java.util.Map;
 import com.google.inject.Inject;
 import io.cucumber.java8.En;
-import io.restassured.path.json.JsonPath;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
+import org.opengroup.osdu.core.common.model.file.FileListRequest;
+import org.opengroup.osdu.core.common.model.file.FileLocationRequest;
+import org.opengroup.osdu.core.common.model.file.FileLocationResponse;
+import org.opengroup.osdu.core.common.model.file.LocationRequest;
+import org.opengroup.osdu.core.common.model.file.LocationResponse;
+import org.opengroup.osdu.core.test.client.ClientException;
+import org.opengroup.osdu.core.test.client.FileClient;
+import org.opengroup.osdu.core.test.client.HttpResponse;
 import org.opengroup.osdu.file.constants.TestConstants;
 import org.opengroup.osdu.file.stepdefs.model.FileScope;
-import org.opengroup.osdu.file.stepdefs.model.HttpRequest;
-import org.opengroup.osdu.file.stepdefs.model.HttpResponse;
-import org.opengroup.osdu.file.util.HttpClientFactory;
+import org.opengroup.osdu.file.util.ErrorResponseAssertions;
+import org.opengroup.osdu.file.util.FileApiJson;
+import org.opengroup.osdu.file.util.FileClientExceptionSupport;
+import org.opengroup.osdu.file.util.FileUtils;
 
+@Slf4j
+@SuppressWarnings("unused")
 public class FileStepDef_GetLocation_FileLocation_FileList implements En {
+
+  private static final String HEADER_AUTHORIZATION = "Authorization";
+  private static final String HEADER_DATA_PARTITION_ID = "data-partition-id";
 
   @Inject
   private FileScope context;
 
-  private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-  private String BODY_FORMAT_GETLOCATION_GETFILELOCATION = "{\"FileID\":\"<VALUE>\"}";
-
   public FileStepDef_GetLocation_FileLocation_FileList() {
 
     Given("I hit File service GetFileLocation API with non-existing file id", () -> {
-      JsonElement jsonBody = new Gson().fromJson(getBodyString(CommonUtility.generateUniqueFileID()),
-          JsonElement.class);
-      HttpResponse response = postRequest(TestConstants.GET_FILE_LOCATION, CommonUtility.getValidHeader(),
-          jsonBody);
-      this.context.setHttpResponse(response);
+      FileClientExceptionSupport.invokeExpectingFailure(() -> postFileLocationRequest(
+          fileLocationRequest(CommonUtility.generateUniqueFileID()),
+          partitionHeaders(TestConstants.PRIVATE_TENANT1)), context);
     });
 
     Then("service should respond back with {string}", (String expectedReponseStatusCode) -> {
-      String actualStatusCode = String.valueOf(this.context.getHttpResponse().getCode());
+      String actualStatusCode = String.valueOf(this.context.getLastStatusCode());
       assertTrue("Expected status - " + expectedReponseStatusCode + " ; Actual status code - " + actualStatusCode,
           expectedReponseStatusCode.equalsIgnoreCase(actualStatusCode));
     });
 
-    Then("service should respond back with {string} or {string}", (String expectedResponseStatusCode, String alternateResponseCode) -> {
-      String actualStatusCode = String.valueOf(this.context.getHttpResponse().getCode());
-      assertTrue(expectedResponseStatusCode.equalsIgnoreCase(actualStatusCode)
-          || alternateResponseCode.equalsIgnoreCase(actualStatusCode));
-    });
+    Then("service should respond back with {string} or {string}",
+        (String expectedResponseStatusCode, String alternateResponseCode) -> {
+          String actualStatusCode = String.valueOf(this.context.getLastStatusCode());
+          assertTrue(expectedResponseStatusCode.equalsIgnoreCase(actualStatusCode)
+              || alternateResponseCode.equalsIgnoreCase(actualStatusCode));
+        });
 
     Given("I hit File service {string} with invalid partition id", (String apiName) -> {
-      String apiEndPoint = getAPIEndPoint(apiName);
-      HttpResponse response = postRequestWithEmptyBody(apiEndPoint,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton("invalidPartitionName"));
-      this.context.setHttpResponse(response);
+      FileClientExceptionSupport.invokeExpectingFailure(
+          () -> postEmptyBodyRequest(apiName, invalidPartitionHeaders()), context);
     });
 
     Given("I hit File service {string} without partition id", (String apiName) -> {
-      String apiEndPoint = getAPIEndPoint(apiName);
-      HttpResponse response = postRequestWithEmptyBody(apiEndPoint, CommonUtility.getHeaderWithoutPartiton());
-      this.context.setHttpResponse(response);
+      FileClientExceptionSupport.invokeExpectingFailure(
+          () -> postEmptyBodyRequest(apiName, withoutPartitionHeaders()), context);
     });
 
     Given("I hit File service {string} without auth token", (String apiName) -> {
-      String apiEndPoint = getAPIEndPoint(apiName);
-      HttpResponse response = postRequestWithEmptyBody(apiEndPoint, CommonUtility.getHeaderWithoutAuthToken());
-      this.context.setHttpResponse(response);
+      FileClientExceptionSupport.invokeExpectingFailure(
+          () -> postEmptyBodyRequest(apiName, withoutAuthHeaders()), context);
     });
 
     Given("I hit File service {string} with invalid auth token", (String apiName) -> {
-      String apiEndPoint = getAPIEndPoint(apiName);
-      HttpResponse response = postRequestWithEmptyBody(apiEndPoint,
-          CommonUtility.getHeaderWithInvaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1));
-      this.context.setHttpResponse(response);
+      FileClientExceptionSupport.invokeExpectingFailure(
+          () -> postEmptyBodyRequest(apiName, invalidAuthHeaders()), context);
     });
 
-    Given("I hit File service GetFileLocation API with {string}", (String BodyContent) -> {
-      JsonElement jsonBody = null;
-      if (BodyContent.equalsIgnoreCase("emptyReqBody")) {
-        HttpResponse response = postRequestWithEmptyBody(TestConstants.GET_FILE_LOCATION,
-            CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1));
-        this.context.setHttpResponse(response);
-      } else if (BodyContent.equalsIgnoreCase("invalidFileId")) {
-        jsonBody = new Gson().fromJson(getBodyString("test"), JsonElement.class);
-        HttpResponse response = postRequest(TestConstants.GET_FILE_LOCATION,
-            CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1),
-            jsonBody);
-        this.context.setHttpResponse(response);
+    Given("I hit File service GetFileLocation API with {string}", (String bodyContent) -> {
+      if (bodyContent.equalsIgnoreCase("emptyReqBody")) {
+        FileClientExceptionSupport.invokeExpectingFailure(
+            () -> postFileLocationValidationErrorRequest(partitionHeaders(TestConstants.PRIVATE_TENANT1)),
+            context);
+      } else if (bodyContent.equalsIgnoreCase("invalidFileId")) {
+        FileClientExceptionSupport.invokeExpectingFailure(
+            () -> postFileLocationErrorRequest(fileLocationRequest("test"),
+                partitionHeaders(TestConstants.PRIVATE_TENANT1)),
+            context);
       }
-
     });
 
     Then("service should respond back with {string} and {string}",
         (String expectedReponseStatusCode, String expectedReponseMessage) -> {
-          String actualStatusCode = String.valueOf(this.context.getHttpResponse().getCode());
+          String actualStatusCode = String.valueOf(this.context.getLastStatusCode());
           assertTrue("Expected status - " + expectedReponseStatusCode + " ; Actual status code - "
               + actualStatusCode, expectedReponseStatusCode.equalsIgnoreCase(actualStatusCode));
-          String actualResponseMessage = new JsonPath(this.context.getHttpResponse().getBody())
-              .get("message");
-          assertTrue(
-              "Expected message - " + expectedReponseMessage + " ; Actual message - "
-                  + actualResponseMessage,
-              expectedReponseMessage.equalsIgnoreCase(actualResponseMessage));
+          ErrorResponseAssertions.assertFileServiceErrorMessage(expectedReponseMessage,
+              context.getClientException());
         });
 
     Then("service should respond back with {string} and error message {string}",
-            (String expectedReponseStatusCode, String expectedReponseMessage) -> {
-              String actualStatusCode = String.valueOf(this.context.getHttpResponse().getCode());
-              assertTrue("Expected status - " + expectedReponseStatusCode + " ; Actual status code - "
-                  + actualStatusCode, expectedReponseStatusCode.equalsIgnoreCase(actualStatusCode));
-              String actualResponseMessage = new JsonPath(this.context.getHttpResponse().getBody())
-                  .get("error.message");
-              assertTrue(
-                  "Expected message - " + expectedReponseMessage + " ; Actual message - "
-                      + actualResponseMessage,
-                  expectedReponseMessage.equalsIgnoreCase(actualResponseMessage));
-            });
+        (String expectedReponseStatusCode, String expectedReponseMessage) -> {
+          String actualStatusCode = String.valueOf(this.context.getLastStatusCode());
+          assertTrue("Expected status - " + expectedReponseStatusCode + " ; Actual status code - "
+              + actualStatusCode, expectedReponseStatusCode.equalsIgnoreCase(actualStatusCode));
+          ErrorResponseAssertions.assertApiErrorMessage(expectedReponseMessage,
+              context.getClientException());
+        });
 
-    Given("I hit File service GetLocation API with {string}", (String BodyContent) -> {
-      JsonElement jsonBody = null;
-      if (BodyContent.equalsIgnoreCase("invalid file location")) {
-        jsonBody = new Gson().fromJson(getBodyString("/" + CommonUtility.generateUniqueFileID()),
-            JsonElement.class);
-      } else if (BodyContent.equalsIgnoreCase("fileId legth exceeding limit")) {
-        jsonBody = new Gson().fromJson(getBodyString(CommonUtility.generateFileIDExceedingLegthLimit()),
-            JsonElement.class);
+    Given("I hit File service GetLocation API with {string}", (String bodyContent) -> {
+      LocationRequest request;
+      if (bodyContent.equalsIgnoreCase("invalid file location")) {
+        request = locationRequest("/" + CommonUtility.generateUniqueFileID());
+      } else if (bodyContent.equalsIgnoreCase("fileId legth exceeding limit")) {
+        request = locationRequest(CommonUtility.generateFileIDExceedingLegthLimit());
+      } else {
+        return;
       }
-      HttpResponse response = postRequest(TestConstants.GET_LOCATION,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1), jsonBody);
-      this.context.setHttpResponse(response);
+      FileClientExceptionSupport.invokeExpectingFailure(
+          () -> postLocationRequest(request, partitionHeaders(TestConstants.PRIVATE_TENANT1)), context);
     });
 
     Given("I hit File service GetLocation API with existing file id", () -> {
-      JsonElement fileIDJsonString = new Gson().fromJson(getBodyString(CommonUtility.generateUniqueFileID()),
-          JsonElement.class);
-
-      HttpResponse response = postRequest(TestConstants.GET_LOCATION,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1),
-          fileIDJsonString);
-      String actualStatusCode = String.valueOf(response.getCode());
+      LocationRequest request = locationRequest(CommonUtility.generateUniqueFileID());
+      Map<String, String> headers = partitionHeaders(TestConstants.PRIVATE_TENANT1);
+      HttpResponse<LocationResponse> response = postLocationRequest(request, headers);
+      String actualStatusCode = String.valueOf(response.statusCode());
       assertTrue("Expected status - 200; Actual status code - " + actualStatusCode,
           "200".equalsIgnoreCase(actualStatusCode));
-
-      response = postRequest(TestConstants.GET_LOCATION,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1),
-          fileIDJsonString);
-      this.context.setHttpResponse(response);
+      FileClientExceptionSupport.invokeExpectingFailure(
+          () -> postLocationRequest(request, headers), context);
     });
 
     Given("I hit File service GetFileList API with {string}", (String inputPayload) -> {
-      JsonElement jsonBody = null;
-      String body = this.context.getFileUtils().readFromLocalFilePath(inputPayload);
-      jsonBody = new Gson().fromJson(body, JsonElement.class);
-      HttpResponse response = postRequest(TestConstants.GET_FILE_LIST,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1), jsonBody);
-      this.context.setHttpResponse(response);
+      FileListRequest request = FileApiJson.readFileListRequest(inputPayload);
+      runExpectingClientException(() -> context.getFileClient().getFileList(request,
+          partitionHeaders(TestConstants.PRIVATE_TENANT1)));
     });
 
     Given("I hit File service GetLocation API without File Id", () -> {
-      HttpResponse response = postRequestWithEmptyBody(TestConstants.GET_LOCATION,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1));
-      this.context.setHttpResponse(response);
+      HttpResponse<LocationResponse> response = postLocationRequest(
+          LocationRequest.builder().build(),
+          partitionHeaders(TestConstants.PRIVATE_TENANT1));
+      this.context.setLocationResponse(response);
     });
 
     Then("service should respond back with {string} , File Id and Signed URL",
         (String expectedReponseStatusCode) -> {
-          String actualStatusCode = String.valueOf(this.context.getHttpResponse().getCode());
+          String actualStatusCode = String.valueOf(this.context.getLastStatusCode());
           assertTrue("Expected status - " + expectedReponseStatusCode + " ; Actual status code - "
               + actualStatusCode, expectedReponseStatusCode.equalsIgnoreCase(actualStatusCode));
-          String respBody = this.context.getHttpResponse().getBody();
-          String responseFileId = new JsonPath(respBody).get("FileID");
-          String responseLocationFileSource = new JsonPath(respBody).get("Location.FileSource").toString();
-          String responseLocationSignedURL = new JsonPath(respBody).get("Location.SignedURL").toString();
-          assertFalse(responseFileId.isEmpty() && responseLocationFileSource.isEmpty()
-              && responseLocationSignedURL.isEmpty());
+          LocationResponse locationResponse = context.getLocationResponse().body();
+          assertFalse(locationResponse.getFileID().isEmpty());
+          assertFalse(locationResponse.getLocation().get("FileSource").isEmpty());
+          assertFalse(locationResponse.getLocation().get("SignedURL").isEmpty());
         });
 
     Given("I hit File service GetLocation API with a File Id", () -> {
-      JsonElement jsonBody = new Gson().fromJson(getBodyString(CommonUtility.generateUniqueFileID()),
-          JsonElement.class);
-      HttpResponse response = postRequest(TestConstants.GET_LOCATION,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1), jsonBody);
-      this.context.setHttpResponse(response);
+      HttpResponse<LocationResponse> response = postLocationRequest(locationRequest(CommonUtility.generateUniqueFileID()),
+          partitionHeaders(TestConstants.PRIVATE_TENANT1));
+      this.context.setLocationResponse(response);
     });
 
     Given("I hit File service GetFileLocation API with same File Id", () -> {
-      // call GetLocation to get a File Id
-      JsonElement jsonBody = new Gson().fromJson(getBodyString(CommonUtility.generateUniqueFileID()),
-          JsonElement.class);
-      HttpResponse response = postRequest(TestConstants.GET_LOCATION,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1), jsonBody);
-      String responseFileId = new JsonPath(response.getBody()).get("FileID");
-      LOGGER.log(Level.INFO, "File Id generated by getLocation - " + responseFileId);
-      // call GetFileLocation with above FileId
-      JsonElement fileIdAsInputJson = new Gson().fromJson(responseFileId, JsonElement.class);
-      response = postRequest(TestConstants.GET_FILE_LOCATION,
-          CommonUtility.getHeaderWithVaidAuthorizationForPartiton(TestConstants.PRIVATE_TENANT1),
-          fileIdAsInputJson);
-
-      this.context.setHttpResponse(response);
+      LocationRequest request = locationRequest(CommonUtility.generateUniqueFileID());
+      HttpResponse<LocationResponse> locationResult =
+          postLocationRequest(request, partitionHeaders(TestConstants.PRIVATE_TENANT1));
+      String responseFileId = locationResult.body().getFileID();
+      log.info("File Id generated by getLocation - {}", responseFileId);
+      HttpResponse<FileLocationResponse> fileLocationResult = postFileLocationRequest(
+          fileLocationRequest(responseFileId), partitionHeaders(TestConstants.PRIVATE_TENANT1));
+      this.context.setFileLocationResponse(fileLocationResult);
     });
 
     Then("service should respond back with {string} and UnSigned URL", (String expectedReponseStatusCode) -> {
-      String actualStatusCode = String.valueOf(this.context.getHttpResponse().getCode());
+      String actualStatusCode = String.valueOf(this.context.getLastStatusCode());
       assertTrue("Expected status - " + expectedReponseStatusCode + " ; Actual status code - " + actualStatusCode,
           expectedReponseStatusCode.equalsIgnoreCase(actualStatusCode));
-      String respBody = this.context.getHttpResponse().getBody();
-      String responseLocation = new JsonPath(respBody).get("Location").toString();
-
-      assertFalse(responseLocation.isEmpty());
+      FileLocationResponse fileLocationResponse = context.getFileLocationResponse().body();
+      assertFalse(fileLocationResponse.getLocation().isEmpty());
     });
-
   }
 
-  private String getAPIEndPoint(String apiName) {
-    String apiEndPoint = "";
+  private static Map<String, String> partitionHeaders(String partition) {
+    return Map.of(HEADER_DATA_PARTITION_ID, partition);
+  }
+
+
+  private static Map<String, String> invalidPartitionHeaders() {
+    return Map.of(HEADER_DATA_PARTITION_ID, "invalidPartitionName");
+  }
+
+  private static Map<String, String> withoutPartitionHeaders() {
+    return Map.of(HEADER_DATA_PARTITION_ID, "");
+  }
+
+  private static Map<String, String> withoutAuthHeaders() {
+    return Map.of(HEADER_AUTHORIZATION, "");
+  }
+
+  private Map<String, String> invalidAuthHeaders() {
+    return Map.of(HEADER_AUTHORIZATION,
+        "Bearer invalid");
+  }
+
+  private void postEmptyBodyRequest(String apiName, Map<String, String> headerOverrides) {
     switch (apiName) {
-      case "GetFileLocation":
-        apiEndPoint = TestConstants.GET_FILE_LOCATION;
-        break;
-
-      case "GetFileList":
-        apiEndPoint = TestConstants.GET_FILE_LIST;
-        break;
+      case "GetFileLocation" -> context.getFileClient().getFileLocation(
+          fileLocationRequest(null), headerOverrides);
+      case "GetFileList" -> context.getFileClient().getFileList(
+          FileListRequest.builder().build(), headerOverrides);
+      default -> throw new IllegalArgumentException("Unknown API: " + apiName);
     }
-    return apiEndPoint;
   }
 
-  private HttpResponse postRequest(String apiEndPoint, Map<String, String> headerMap, JsonElement jsonBody) {
-    HttpRequest httpRequest = HttpRequest.builder().url(TestConstants.HOST + apiEndPoint).body(jsonBody.toString())
-        .httpMethod(HttpRequest.POST).requestHeaders(headerMap).build();
-    HttpResponse response = HttpClientFactory.getInstance().send(httpRequest);
-    return response;
+  private static LocationRequest locationRequest(String fileId) {
+    return LocationRequest.builder().fileID(fileId).build();
   }
 
-  private HttpResponse postRequestWithEmptyBody(String apiEndPoint, Map<String, String> headerMap) {
-    HttpRequest httpRequest = HttpRequest.builder().url(TestConstants.HOST + apiEndPoint).body("{}")
-        .httpMethod(HttpRequest.POST).requestHeaders(headerMap).build();
-    HttpResponse response = HttpClientFactory.getInstance().send(httpRequest);
-    return response;
+  private static FileLocationRequest fileLocationRequest(String fileId) {
+    return FileLocationRequest.builder().fileID(fileId).build();
   }
 
-  private String getBodyString(String content) {
-    return BODY_FORMAT_GETLOCATION_GETFILELOCATION.replace("<VALUE>", content);
+  private HttpResponse<LocationResponse> postLocationRequest(LocationRequest request, Map<String, String> headerMap) {
+    return context.getFileClient().getLocation(request, headerMap);
   }
 
+  private HttpResponse<FileLocationResponse> postFileLocationRequest(FileLocationRequest request,
+      Map<String, String> headerMap) {
+    return context.getFileClient().getFileLocation(request, headerMap);
+  }
+
+  private void postFileLocationValidationErrorRequest(Map<String, String> headerMap) {
+    context.getFileClient().getFileLocation("{}", headerMap,
+        FileLocationResponse.class);
+  }
+
+  private void postFileLocationErrorRequest(FileLocationRequest request, Map<String, String> headerMap) {
+    context.getFileClient().getFileLocation(request, headerMap);
+  }
+
+  private void runExpectingClientException(Runnable action) {
+    try {
+      action.run();
+      fail("Expected ClientException");
+    } catch (ClientException exception) {
+      context.recordClientException(exception);
+    }
+  }
 }

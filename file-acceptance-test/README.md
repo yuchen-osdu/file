@@ -1,19 +1,21 @@
 ### Running E2E Tests
 
-You will need to have the following environment variables defined.
+You will need the following environment variables.
 
 | name                             | value                              | description                   | sensitive? | source | required |
 |----------------------------------|------------------------------------|-------------------------------|------------|--------|----------|
-| `ACL_OWNERS`                     | ex `data.default.owners`           | ACL Owner privilege           | no         | -      | no       |
-| `ACL_VIEWERS`                    | ex `data.default.viewers`          | ACL Viewer privilege          | no         | -      | no       |
-| `SIGNED_URL_EXPIRY_TIME_MINUTES` | ex `15`                            | Time to wait for file expiry  | no         | -      | no       |
-| `ENTITLEMENTS_DOMAIN`            | ex `group`                         | Group ID                      | no         | -      | yes      |
-| `FILE_SERVICE_HOST`              | ex`http://localhost:8080/api/file` | Endpoint of File service host | no         | -      | yes      |
-| `TENANT_NAME`                    | ex `opendes`                       | OSDU tenant used for testing  | no         | -      | yes      |
-| `SHARED_TENANT`                  | ex `opendes`                       | Shared Tenant name            | no         | -      | yes      |
-| `PRIVATE_TENANT1`                | ex `opendes`                       | Private Tenant                | no         | -      | yes      |
-| `PRIVATE_TENANT2`                | ex `opendes`                       | Private Tenant 2              | no         | -      | yes      |
-| `LEGAL_TAG`                      | ex `opendes`                       | Legal Tag name                | no         | -      | yes      |
+| `FILE_SERVICE_HOST`              | ex `http://localhost:8080/api/file` | Endpoint of File service host                                  | no         | -      | yes      |
+| `DATA_PARTITION_ID`              | ex `opendes`                        | Default data partition id used by `os-core-test` clients       | no         | -      | yes      |
+| `PRIVATE_TENANT1`                | ex `opendes`                        | Partition used by explicit File API header override scenarios   | no         | -      | yes      |
+| `ACL_OWNERS`                     | ex `data.default.owners`            | ACL owner group placeholder replacement                         | no         | -      | no       |
+| `ACL_VIEWERS`                    | ex `data.default.viewers`           | ACL viewer group placeholder replacement                        | no         | -      | no       |
+| `ENTITLEMENTS_DOMAIN`            | ex `group`                          | Domain used to build ACL principal placeholders                 | no         | -      | no       |
+| `LEGAL_TAG`                      | ex `opendes`                        | Legal tag placeholder replacement                               | no         | -      | no       |
+| `SIGNED_URL_EXPIRY_TIME_MINUTES` | ex `15`                             | Wait time in signed URL expiration scenarios                    | no         | -      | no       |
+
+Notes:
+- `PRIVATE_TENANT2`, `SHARED_TENANT`, and `TENANT_NAME` are no longer used by the current acceptance test code.
+- Tenant columns in some legacy feature tables are retained for compatibility, but partition selection is now driven by `DATA_PARTITION_ID` and explicit header overrides.
 
 Authentication can be provided as OIDC config:
 
@@ -39,6 +41,12 @@ Execute following command to build code and run all the integration tests:
  # build + install integration test core
  $ (cd file-acceptance-test && mvn clean verify)
  ```
+
+Integration tests run in three phases via `maven-failsafe-plugin`:
+
+1. **Pre-integration** (`PreIntegrationTestsRunner`, `@Startup`) — validates the File service `/info` endpoint before main scenarios
+2. **Integration** (`FileTestsRunner`, `FileDmsTestsRunner`, `@File` / `@FileDMS`) — main acceptance scenarios; per-scenario cleanup runs via `FileScenarioHooks`
+3. **Post-integration** (`TearDownTestsRunner`, `@TearDown`) — final tear-down phase after all scenarios complete
 
 ## License
 

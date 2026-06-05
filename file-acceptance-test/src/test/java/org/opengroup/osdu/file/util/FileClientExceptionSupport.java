@@ -15,21 +15,23 @@
  *  limitations under the License.
  */
 
-package org.opengroup.osdu.file.stepdefs.model;
+package org.opengroup.osdu.file.util;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static org.junit.Assert.fail;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.experimental.UtilityClass;
+import org.opengroup.osdu.core.test.client.ClientException;
+import org.opengroup.osdu.file.stepdefs.model.FileScope;
 
-@Data
-@Builder
-public class HttpResponse {
-    @Builder.Default
-    Map<String, List<String>> responseHeaders = new HashMap<>();
-    private int code;
-    private Exception exception;
-    private String body;
+@UtilityClass
+public class FileClientExceptionSupport {
+
+  public static void invokeExpectingFailure(Runnable action, FileScope context) {
+    try {
+      action.run();
+      fail("Expected ClientException");
+    } catch (ClientException exception) {
+      context.recordClientException(exception);
+    }
+  }
 }

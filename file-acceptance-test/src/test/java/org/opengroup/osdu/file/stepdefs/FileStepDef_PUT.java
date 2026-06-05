@@ -17,10 +17,13 @@
 
 package org.opengroup.osdu.file.stepdefs;
 
+import com.google.inject.Inject;
 import io.cucumber.java8.En;
+import org.opengroup.osdu.file.stepdefs.model.FileScope;
 
 public class FileStepDef_PUT implements En {
 
-	public FileStepDef_PUT() {
-	}
+  @Inject
+  @SuppressWarnings("unused")
+  private FileScope context;
 }
