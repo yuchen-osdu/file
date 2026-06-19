@@ -26,7 +26,6 @@
   </parent>
 
   <artifactId>file-gc</artifactId>
-  <version>0.30.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>file-gc</name>
@@ -42,6 +41,16 @@
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>file-core-plus</artifactId>
       <version>0.30.0-SNAPSHOT</version>
+    </dependency>
+    <!--
+      The root pom excludes spring-boot-starter-tomcat from the managed
+      spring-boot-starter-web entry, which also strips tomcat-embed-core
+      (and therefore jakarta.servlet-api). The GC provider runs an embedded
+      Tomcat, so re-introduce the starter explicitly here.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
     </dependency>
   </dependencies>
 

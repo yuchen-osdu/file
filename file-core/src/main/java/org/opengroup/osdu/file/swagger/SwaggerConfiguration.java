@@ -88,4 +88,5 @@ public class SwaggerConfiguration {
       return operation;
     };
   }
+
 }

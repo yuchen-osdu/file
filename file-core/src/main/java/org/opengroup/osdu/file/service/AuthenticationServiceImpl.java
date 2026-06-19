@@ -18,7 +18,7 @@ package org.opengroup.osdu.file.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.opengroup.osdu.file.exception.OsduUnauthorizedException;
 import org.opengroup.osdu.file.provider.interfaces.IAuthenticationService;
 import org.springframework.stereotype.Service;
@@ -41,11 +41,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
   }
 
   private void checkPreconditions(String authorizationToken, String partitionID) {
-    if (Strings.isBlank(authorizationToken)) {
+    if (StringUtils.isBlank(authorizationToken)) {
       throw new OsduUnauthorizedException("Missing authorization token");
     }
 
-    if (Strings.isBlank(partitionID)) {
+    if (StringUtils.isBlank(partitionID)) {
       throw new OsduUnauthorizedException("Missing partitionID");
     }
   }

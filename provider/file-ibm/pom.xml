@@ -28,8 +28,6 @@
 		<start-class>org.opengroup.osdu.file.provider.ibm.FileIBMApplication</start-class>
 		<os-core-lib-ibm.version>0.28.1</os-core-lib-ibm.version>
 		<aws.version>1.12.261</aws.version>
-		<spring-webmvc.version>6.1.14</spring-webmvc.version>
-		<jackson-databind.version>2.14.2</jackson-databind.version>
 	</properties>
 
   <dependencies>
@@ -72,7 +70,6 @@
     <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-      <version>${spring-boot.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.springframework</groupId>
@@ -83,7 +80,6 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
-      <version>4.2.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.cloud</groupId>
@@ -108,7 +104,6 @@
 		<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
-			<version>1.5</version>
       <exclusions>
         <exclusion>
           <groupId>commons-io</groupId>
@@ -119,7 +114,6 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.14.0</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
@@ -192,7 +186,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-tomcat</artifactId>
-      <version>3.3.7</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.groovy</groupId>
@@ -204,7 +197,6 @@
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>os-core-common</artifactId>
-      <version>${os-core-common.version}</version>
     </dependency>
 
     <dependency>
@@ -216,7 +208,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
@@ -225,13 +216,11 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-web</artifactId>
-      <version>6.2.7</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
-      <version>2.1</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.springframework/spring-beans -->
     <dependency>
@@ -255,43 +244,6 @@
     </dependency>
   </dependencies>
 
-  <dependencyManagement>
-      <dependencies>
-        <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-dependencies</artifactId>
-          <version>3.2.5</version>
-          <type>pom</type>
-          <scope>import</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-webmvc</artifactId>
-          <version>${spring-webmvc.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-framework-bom</artifactId>
-          <version>${spring-framework-version}</version>
-          <type>pom</type>
-          <scope>import</scope>
-        </dependency>
-      <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-bom</artifactId>
-        <version>6.2.3</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
-        <dependency>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-web</artifactId>
-          <version>6.1.14</version>
-        </dependency>
-
-      </dependencies>
-  </dependencyManagement>
   <repositories>
     <repository>
       <id>${repo.releases.id}</id>

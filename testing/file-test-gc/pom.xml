@@ -17,9 +17,7 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<groupId>org.opengroup.osdu</groupId>
 	<artifactId>file-test-gcp</artifactId>
-	<version>0.30.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 
@@ -27,8 +25,6 @@
 	<description>Google Cloud implementation of test project for file service</description>
 
 	<properties>
-		<maven.compiler.target>17</maven.compiler.target>
-		<maven.compiler.source>17</maven.compiler.source>
 		<junit-jupiter.version>5.5.2</junit-jupiter.version>
 		<google.oauth.version>0.21.1</google.oauth.version>
     <argLine>
@@ -42,7 +38,6 @@
 		<dependency>
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
-			<version>3.2.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -52,59 +47,50 @@
 		</dependency>
 		<dependency>
 			<groupId>org.opengroup.osdu</groupId>
-			<artifactId>os-core-common-spring6</artifactId>
-			<version>0.26.0-rc2</version>
+		<artifactId>os-core-common</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.9</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
-			<version>0.9.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.30</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>io.cucumber</groupId>
 			<artifactId>cucumber-java8</artifactId>
-			<version>5.4.0</version>
 			<scope>test</scope>
 		</dependency>
     <dependency>
       <groupId>io.cucumber</groupId>
       <artifactId>cucumber-java</artifactId>
-      <version>5.4.0</version>
     </dependency>
 
 		<dependency>
 			<groupId>io.cucumber</groupId>
 			<artifactId>cucumber-junit</artifactId>
-			<version>5.4.0</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>io.cucumber</groupId>
 			<artifactId>cucumber-guice</artifactId>
-			<version>5.4.0</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>4.2.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -116,7 +102,6 @@
 		<dependency>
 			<groupId>com.squareup.okhttp</groupId>
 			<artifactId>okhttp</artifactId>
-			<version>2.7.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.auth</groupId>
@@ -132,7 +117,6 @@
 		<dependency>
 			<groupId>org.awaitility</groupId>
 			<artifactId>awaitility</artifactId>
-			<version>3.0.0</version>
 		</dependency>
 	</dependencies>
 
@@ -141,7 +125,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.0.0-M3</version>
 				<executions>
 					<execution>
 						<id>integration-test</id>

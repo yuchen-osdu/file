@@ -48,19 +48,23 @@ public class ObmCollectionStorageUtilService implements IFileCollectionStorageUt
 
   @Override
   public String getPersistentLocation(String relativePath, String partitionId) {
-    return partitionPropertyResolver.getOptionalPropertyValue(partitionPropertyNames.getPersistentLocationName(), partitionId).orElseGet(() -> {
-      TenantInfo tenantInfo = tenantFactory.getTenantInfo(partitionId);
-      return String.format("%s%s-%s-%s%s", environmentResolver.getTransferProtocol(partitionId),
-          tenantInfo.getProjectId(), tenantInfo.getName(), properties.getPersistentArea(), relativePath);
-    });
+    return partitionPropertyResolver.getOptionalPropertyValue(partitionPropertyNames.getPersistentLocationName(), partitionId)
+        .map(bucket -> environmentResolver.getTransferProtocol(partitionId) + bucket + relativePath)
+        .orElseGet(() -> {
+          TenantInfo tenantInfo = tenantFactory.getTenantInfo(partitionId);
+          return String.format("%s%s-%s-%s%s", environmentResolver.getTransferProtocol(partitionId),
+              tenantInfo.getProjectId(), tenantInfo.getName(), properties.getPersistentArea(), relativePath);
+        });
   }
 
   @Override
   public String getStagingLocation(String relativePath, String partitionId) {
-    return partitionPropertyResolver.getOptionalPropertyValue(partitionPropertyNames.getStagingLocationName(), partitionId).orElseGet(() -> {
-      TenantInfo tenantInfo = tenantFactory.getTenantInfo(partitionId);
-      return String.format("%s%s-%s-%s%s", environmentResolver.getTransferProtocol(partitionId),
-          tenantInfo.getProjectId(), tenantInfo.getName(), properties.getStagingArea(), relativePath);
-    });
+    return partitionPropertyResolver.getOptionalPropertyValue(partitionPropertyNames.getStagingLocationName(), partitionId)
+        .map(bucket -> environmentResolver.getTransferProtocol(partitionId) + bucket + relativePath)
+        .orElseGet(() -> {
+          TenantInfo tenantInfo = tenantFactory.getTenantInfo(partitionId);
+          return String.format("%s%s-%s-%s%s", environmentResolver.getTransferProtocol(partitionId),
+              tenantInfo.getProjectId(), tenantInfo.getName(), properties.getStagingArea(), relativePath);
+        });
   }
 }

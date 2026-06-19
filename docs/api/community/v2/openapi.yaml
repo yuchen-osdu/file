@@ -51,37 +51,37 @@ paths:
         "400":
           description: Bad Request
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "401":
           description: Unauthorized
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "403":
           description: User not authorized to perform the action
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "500":
           description: Internal Server Error
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "502":
           description: Bad Gateway
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "503":
           description: Service Unavailable
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
       security:
@@ -117,50 +117,50 @@ paths:
         "201":
           description: Metadata created
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/FileMetadataResponse"
         "400":
           description: Bad user input. Mandatory fields missing or unacceptable value
             passed to API
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "401":
           description: Unauthorized
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "403":
           description: User not authorized to perform the action
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "404":
           description: Record Not Found
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "500":
           description: Internal Server Error
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "502":
           description: Bad Gateway
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "503":
           description: Service Unavailable
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
       security:
@@ -183,7 +183,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: string
   /v2/liveness_check:
@@ -204,7 +204,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: string
   /v2/info:
@@ -256,49 +256,49 @@ paths:
         "200":
           description: A successful response
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/RecordVersion"
         "400":
           description: Bad Request
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "401":
           description: Unauthorized
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "403":
           description: User not authorized to perform the action
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "404":
           description: Record Not Found
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "500":
           description: Internal Server Error
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "502":
           description: Bad Gateway
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "503":
           description: Service Unavailable
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
       security:
@@ -331,43 +331,43 @@ paths:
         "400":
           description: Bad Request
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "401":
           description: Unauthorized
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "403":
           description: User not authorized to perform the action
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "404":
           description: Record Not Found
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "500":
           description: Internal Server Error
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "502":
           description: Bad Gateway
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "503":
           description: Service Unavailable
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
       security:
@@ -410,50 +410,50 @@ paths:
         "200":
           description: A successful response
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/DownloadUrlResponse"
         "400":
           description: Bad user input. Mandatory fields missing or unacceptable value
             passed to API
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "401":
           description: Unauthorized
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "403":
           description: User not authorized to perform the action
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "404":
           description: Record Not Found
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "500":
           description: Internal Server Error
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "502":
           description: Bad Gateway
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "503":
           description: Service Unavailable
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
       security:
@@ -494,50 +494,50 @@ paths:
         "200":
           description: File location
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/LocationResponse"
         "400":
           description: Bad user input. Mandatory fields missing or unacceptable value
             passed to API
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "401":
           description: Unauthorized
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "403":
           description: User not authorized to perform the action
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "404":
           description: Record Not Found
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "500":
           description: Internal Server Error
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "502":
           description: Bad Gateway
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
         "503":
           description: Service Unavailable
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
       security:
@@ -546,25 +546,46 @@ components:
   schemas:
     AppError:
       type: object
+      description: Standard error response returned by OSDU services.
       properties:
         code:
           type: integer
           format: int32
+          description: HTTP status code.
+          example: 400
         reason:
           type: string
+          description: Short error reason.
+          example: Bad Request
         message:
           type: string
+          description: Detailed error message.
+          example: Invalid record format.
     Acl:
       type: object
+      description: Access control lists defining which groups can view or own a record.
       properties:
         viewers:
           type: array
+          description: List of valid groups which will have view/read privileges over
+            the record.
           items:
             type: string
+            example: data.default.viewers@opendes.contoso.com
+            pattern: "^data\\.[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\\
+              .)+[a-zA-Z](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$"
         owners:
           type: array
+          description: List of valid groups which will have write privileges over
+            the record.
           items:
             type: string
+            example: data.default.owners@opendes.contoso.com
+            pattern: "^data\\.[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\\
+              .)+[a-zA-Z](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$"
+      required:
+      - owners
+      - viewers
     Ancestry:
       type: object
       description: A named list of entities in the data lake as a dictionary item.
@@ -647,7 +668,8 @@ components:
           pattern: "^[0-9a-fA-F]32}$"
         ExtensionProperties:
           type: object
-          additionalProperties: {}
+          additionalProperties:
+            type: object
           description: File DMS Extension Properties
       required:
       - DatasetProperties
@@ -675,7 +697,8 @@ components:
           type: array
           items:
             type: object
-            additionalProperties: {}
+            additionalProperties:
+              type: object
         tags:
           type: object
           additionalProperties:
@@ -740,21 +763,30 @@ components:
       properties:
         legaltags:
           type: array
+          description: List of legal tag names associated with this record.
           items:
             type: string
+            example: opendes-Default-Legal-Tag
+          minItems: 1
           uniqueItems: true
         otherRelevantDataCountries:
           type: array
+          description: ISO 3166-1 alpha-2 country codes of other relevant data countries.
           items:
             type: string
+            example: US
           minItems: 1
           uniqueItems: true
         status:
           type: string
+          description: "Compliance status of the legal tags, assigned by the server."
           enum:
           - compliant
           - incompliant
+          example: compliant
+          readOnly: true
       required:
+      - legaltags
       - otherRelevantDataCountries
     FileMetadataResponse:
       type: object
@@ -766,45 +798,77 @@ components:
             record.
     ConnectedOuterService:
       type: object
+      description: Name and version of an external service that this OSDU service
+        connects to.
       properties:
         name:
           type: string
+          description: Name of the connected external service.
+          example: storage
         version:
           type: string
+          description: Version of the connected external service.
+          example: 2.0.0
     FeatureFlagState:
       type: object
+      description: State of a feature flag for a given partition and source.
       properties:
         name:
           type: string
+          description: Name of the feature flag.
+          example: collaborations-api
         enabled:
           type: boolean
+          description: Whether the feature flag is currently enabled.
+          example: true
         partition:
           type: string
+          description: Data partition this flag applies to.
+          example: opendes
         source:
           type: string
+          description: Source configuration that provided this flag state.
+          example: runtime
     VersionInfo:
       type: object
+      description: Version and build information for an OSDU service.
       properties:
         groupId:
           type: string
+          description: Maven group ID of the service artifact.
+          example: org.opengroup.osdu
         artifactId:
           type: string
+          description: Maven artifact ID of the service.
+          example: os-search
         version:
           type: string
+          description: Semantic version of the deployed service.
+          example: 0.27.0
         buildTime:
           type: string
+          description: ISO 8601 timestamp of the build.
+          example: 2021-01-26T02:24:13.843Z
         branch:
           type: string
+          description: Source control branch from which the service was built.
+          example: main
         commitId:
           type: string
+          description: Short commit SHA of the build.
+          example: "7777777"
         commitMessage:
           type: string
+          description: Commit message of the build.
+          example: initial commit
         connectedOuterServices:
           type: array
+          description: List of external services this service depends on.
           items:
             $ref: "#/components/schemas/ConnectedOuterService"
         featureFlagStates:
           type: array
+          description: "Current feature flag states for this partition, if any."
           items:
             $ref: "#/components/schemas/FeatureFlagState"
     RecordVersion:
@@ -836,7 +900,8 @@ components:
           type: array
           items:
             type: object
-            additionalProperties: {}
+            additionalProperties:
+              type: object
         tags:
           type: object
           additionalProperties:

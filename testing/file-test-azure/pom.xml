@@ -23,20 +23,14 @@
     <version>0.30.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
 
-  </parent>
+    </parent>
     <groupId>org.opengroup.osdu.file.azure</groupId>
     <artifactId>file-test-azure</artifactId>
-    <version>0.30.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.source>17</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.main.basedir>${project.basedir}</project.main.basedir>
-        <jackson.version>2.15.4</jackson.version>
-        <os-core-common.version>0.26.0-rc2</os-core-common.version>
-        <netty.version>4.1.107.Final</netty.version>
     </properties>
     <dependencies>
         <dependency>
@@ -64,12 +58,10 @@
         <dependency>
             <groupId>org.opengroup.osdu</groupId>
             <artifactId>file-test-core</artifactId>
-            <version>0.30.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
-            <version>0.9.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
@@ -80,8 +72,7 @@
       <!-- Added dependency of core-lib-azure to add Azure Service Principle class -->
       <dependency>
         <groupId>org.opengroup.osdu</groupId>
-        <artifactId>os-core-common-spring6</artifactId>
-        <version>${os-core-common.version}</version>
+      <artifactId>os-core-common</artifactId>
         <exclusions>
           <exclusion>
             <groupId>org.springframework.boot</groupId>
@@ -110,20 +101,17 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
-            <version>6.1.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -148,23 +136,15 @@
       <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
-        <version>1.18.26</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
     <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-bom</artifactId>
-        <version>${netty.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.2.4</version>
+        <version>3.5.14</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -183,12 +163,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
                 <dependencies>
                   <dependency>
                     <groupId>org.junit.jupiter</groupId>
                     <artifactId>junit-jupiter</artifactId>
-                    <version>5.5.2</version>
+                    <version>${junit-jupiter.version}</version>
                   </dependency>
                 </dependencies>
                 <executions>
