@@ -17,6 +17,7 @@ package org.opengroup.osdu.file.model.filecollection;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,11 +35,13 @@ import jakarta.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(description = "Properties describing a file collection dataset")
 public class DatasetProperties {
 
   // schema - https://community.opengroup.org/osdu/platform/system/schema-service/-/blob/master/deployments/shared-schemas/osdu/abstract/AbstractFileCollection.1.0.0.json#L31
   @JsonProperty("FileCollectionPath")
   @NotNull(message = "FileCollectionPath cannot be null")
   @Valid
+  @Schema(description = "Path to the file collection in storage", requiredMode = Schema.RequiredMode.REQUIRED)
   private String fileCollectionPath;
 }

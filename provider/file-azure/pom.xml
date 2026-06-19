@@ -25,7 +25,6 @@
   </parent>
 
   <artifactId>file-azure</artifactId>
-  <version>0.30.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>file-azure</name>
@@ -34,9 +33,6 @@
   <properties>
     <!-- Build Properties -->
     <spring-boot.repackage.skip>false</spring-boot.repackage.skip>
-    <java.version>17</java.version>
-    <maven.compiler.target>17</maven.compiler.target>
-    <maven.compiler.source>17</maven.compiler.source>
 
     <!-- Azure Dependencies -->
     <core-lib-azure.version>2.3.0</core-lib-azure.version>
@@ -46,17 +42,12 @@
 
     <!-- Utility Dependencies -->
     <commons-fileupload.version>1.6.0</commons-fileupload.version>
-    <lombok.version>1.18.42</lombok.version>
-    <mapstruct.version>1.5.5.Final</mapstruct.version>
     <netty-tcnative.version>2.0.70.Final</netty-tcnative.version>
     <slf4j.version>2.0.16</slf4j.version>
     <checker-compat-qual.version>2.5.5</checker-compat-qual.version>
 
     <!-- Test Dependencies -->
-    <junit-jupiter.version>5.11.4</junit-jupiter.version>
-    <mockito.version>5.21.0</mockito.version>
-    <byte-buddy.version>1.15.11</byte-buddy.version>
-    <jacoco.version>0.8.12</jacoco.version>
+    <byte-buddy.version>1.17.5</byte-buddy.version>
 
     <!-- Plugin Dependencies -->
     <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
@@ -87,12 +78,6 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-      <!-- Override transitive commons-fileupload to fix CVE-2025-48976 -->
-      <dependency>
-        <groupId>commons-fileupload</groupId>
-        <artifactId>commons-fileupload</artifactId>
-        <version>${commons-fileupload.version}</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -101,7 +86,6 @@
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>os-core-common</artifactId>
-      <version>${os-core-common.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -111,6 +95,7 @@
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>file-core</artifactId>
+      <version>0.30.0-SNAPSHOT</version>
       <exclusions>
         <exclusion>
           <groupId>ch.qos.logback</groupId>
@@ -129,12 +114,21 @@
           <artifactId>spring-boot-starter-logging</artifactId>
         </exclusion>
       </exclusions>
-      <version>0.30.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>core-lib-azure</artifactId>
       <version>${core-lib-azure.version}</version>
+    </dependency>
+    <!--
+        os-core-common 7.0.0 declares lettuce-core as provided (not propagated).
+        core-lib-azure's IRedisClientFactory uses lettuce types; Mockito mocking
+        and runtime instantiation require lettuce-core on the classpath.
+    -->
+    <dependency>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+      <version>${lettuce.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.data</groupId>
@@ -190,23 +184,35 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-log4j2</artifactId>
     </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!--
+      The root pom excludes spring-boot-starter-tomcat from the managed
+      spring-boot-starter-web entry, which also strips tomcat-embed-core.
+      The Azure provider runs an embedded Tomcat, so re-introduce the
+      starter explicitly here.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+    </dependency>
 
     <!-- Utility Dependencies -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>${lombok.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct</artifactId>
-      <version>${mapstruct.version}</version>
     </dependency>
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct-processor</artifactId>
-      <version>${mapstruct.version}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -214,19 +220,16 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>${junit-jupiter.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
-      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -241,7 +244,6 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>${jacoco.version}</version>
         <configuration>
           <excludes>
             <exclude>**/*org/opengroup/osdu/file/provider/azure/config/**</exclude>
@@ -270,19 +272,17 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
           <annotationProcessorPaths>
             <path>
               <groupId>org.projectlombok</groupId>
               <artifactId>lombok</artifactId>
               <version>${lombok.version}</version>
             </path>
-            <path>
-              <groupId>org.mapstruct</groupId>
-              <artifactId>mapstruct-processor</artifactId>
-              <version>${mapstruct.version}</version>
-            </path>
+              <path>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${org.mapstruct.version}</version>
+              </path>
             <path>
               <groupId>org.projectlombok</groupId>
               <artifactId>lombok-mapstruct-binding</artifactId>
@@ -305,7 +305,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>${maven-shade-plugin.version}</version>
         <configuration>
           <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
           <createDependencyReducedPom>true</createDependencyReducedPom>

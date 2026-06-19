@@ -22,23 +22,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>${spring-cloud.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
         <groupId>com.squareup.okhttp3</groupId>
         <artifactId>okhttp</artifactId>
         <version>4.9.2</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-bom</artifactId>
-        <version>${spring-security.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -56,7 +42,6 @@
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>os-core-common</artifactId>
-      <version>${os-core-common.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -80,7 +65,7 @@
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>os-obm-core</artifactId>
-      <version>0.30.0</version>
+      <version>0.30.5</version>
     </dependency>
 
 
@@ -99,14 +84,34 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
+    <!--
+      The root pom excludes spring-boot-starter-tomcat from the managed
+      spring-boot-starter-web entry, which also strips tomcat-embed-core
+      (and therefore jakarta.servlet-api). file-core-plus is repackaged as
+      an executable Spring Boot jar (used by the CIMPL/core-plus deployment),
+      so re-introduce the embedded Tomcat starter explicitly here.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+    </dependency>
+    <!--
+      os-core-common declares lettuce-core as scope=provided (compile-only).
+      file-core-plus is packaged as a self-contained Spring Boot fat jar with
+      no external container supplying Lettuce, so we must include it explicitly.
+      Version is pinned here independently — os-core-common should not govern
+      third-party runtime versions for consumers.
+    -->
+    <dependency>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+      <version>7.5.2.RELEASE</version>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-      </plugin>
+      <!-- compiler plugin config (version, release, annotationProcessorPaths) inherited from root pluginManagement -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>

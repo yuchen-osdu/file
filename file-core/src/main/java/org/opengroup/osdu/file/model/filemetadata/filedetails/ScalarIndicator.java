@@ -1,10 +1,12 @@
 package org.opengroup.osdu.file.model.filemetadata.filedetails;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.stream.Stream;
 
 import org.opengroup.osdu.file.exception.EnumValidationException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+@Schema(description = "Indicates how a trace scalar value is applied. STANDARD uses the in-file scalar, NOSCALE ignores it, OVERRIDE replaces it.")
 public enum ScalarIndicator {
     STANDARD("STANDARD"), NOSCALE("NOSCALE"), OVERRIDE("OVERRIDE");
 

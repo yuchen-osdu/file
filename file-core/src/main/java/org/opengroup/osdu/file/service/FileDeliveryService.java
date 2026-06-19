@@ -25,9 +25,9 @@ import org.opengroup.osdu.file.util.ExpiryTimeUtil;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.restassured.path.json.JsonPath;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -89,34 +89,32 @@ public class FileDeliveryService {
     }
   }
 
-	private String extractFileSource(Object obj) {
-		ObjectMapper mapper = new ObjectMapper();
-
-		String jsonStr;
-		try {
-			jsonStr = mapper.writeValueAsString(obj);
-		} catch (JsonProcessingException e) {
-			throw new AppException(HttpStatus.SC_NOT_FOUND, "Not Found.", "Unable to parse fileSource in data.DatasetProperties.FileSourceInfo.FileSource");
-		}
-		JsonPath jsonPath = JsonPath.with(jsonStr);
-		return jsonPath.get(FileMetadataConstant.FILE_SOURCE_PATH);
-	}
-
-
-
-    private String extractFileName(Record recordToHandle) {
-        ObjectMapper mapper = new ObjectMapper();
-        String fileName = null;
-        String jsonStr;
-        try {
-            jsonStr = mapper.writeValueAsString(recordToHandle);
-            JsonPath jsonPath = JsonPath.with(jsonStr);
-            fileName = jsonPath.get(FileMetadataConstant.FILE_NAME_PATH);
-        } catch (JsonProcessingException e) {
-            log.warning("Unable to parse fileName in data.DatasetProperties.FileSourceInfo.Name", e);
-        }
-        return fileName;
+  private String extractFileSource(Object obj) {
+    try {
+      return extractJsonValue(obj, FileMetadataConstant.FILE_SOURCE_PATH);
+    } catch (JsonProcessingException e) {
+      throw new AppException(HttpStatus.SC_NOT_FOUND, "Not Found.",
+          "Unable to parse fileSource in data.DatasetProperties.FileSourceInfo.FileSource");
     }
+  }
+
+  private String extractFileName(Record recordToHandle) {
+    try {
+      return extractJsonValue(recordToHandle, FileMetadataConstant.FILE_NAME_PATH);
+    } catch (JsonProcessingException e) {
+      log.warning("Unable to parse fileName in data.DatasetProperties.FileSourceInfo.Name", e);
+      return null;
+    }
+  }
+
+  private String extractJsonValue(Object value, String dotSeparatedPath) throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode node = mapper.readTree(mapper.writeValueAsString(value));
+    for (String segment : dotSeparatedPath.split("\\.")) {
+      node = node.path(segment);
+    }
+    return node.isMissingNode() || node.isNull() ? null : node.asText();
+  }
 
     private String getContentTypeFromFileName(String fileName) {
         FileExtension fileExtension = null;
