@@ -19,7 +19,6 @@ package org.opengroup.osdu.file.provider.azure.service;
 import com.azure.cosmos.implementation.InternalServerErrorException;
 import com.azure.storage.blob.sas.BlobSasPermission;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -417,7 +416,6 @@ class StorageServiceImplTest {
         .build();
   }
 
-  @NotNull
   private Map<String, String> createRevokeURLRequest(String resourceGroup, String storageAccount) {
     Map<String, String> revokeURLRequest = new HashMap<>();
     revokeURLRequest.put("resourceGroup", resourceGroup);

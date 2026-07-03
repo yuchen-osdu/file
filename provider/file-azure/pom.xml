@@ -35,7 +35,7 @@
     <spring-boot.repackage.skip>false</spring-boot.repackage.skip>
 
     <!-- Azure Dependencies -->
-    <core-lib-azure.version>2.3.0</core-lib-azure.version>
+    <core-lib-azure.version>3.0.0</core-lib-azure.version>
     <azure-sdk.version>1.2.30</azure-sdk.version>
     <azure-spring.version>5.18.0</azure-spring.version>
     <azure-core.version>1.45.0</azure-core.version>
@@ -57,14 +57,21 @@
   </properties>
   <dependencyManagement>
     <dependencies>
-            <dependency>
+      <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
         <version>${netty.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-<dependency>
+      <dependency>
+          <groupId>org.opengroup.osdu</groupId>
+          <artifactId>core-lib-azure</artifactId>
+          <version>${core-lib-azure.version}</version>
+          <type>pom</type>
+          <scope>import</scope>
+      </dependency>
+      <dependency>
         <groupId>com.azure</groupId>
         <artifactId>azure-sdk-bom</artifactId>
         <version>${azure-sdk.version}</version>
