@@ -18,7 +18,7 @@ FROM registry.repo.osdu.aws/amazoncorretto:17-alpine
 RUN apk update && \
     apk add --no-cache \
     bash \
-    c-ares=1.34.6-r0 \
+    c-ares \
     curl \
     shadow \
     && \
