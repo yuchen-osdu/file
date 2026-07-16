@@ -105,7 +105,7 @@ class StorageServiceImplTest {
 
         // Assert
         assertNotNull(result);
-        verify(fileLocationProvider).getUploadFileLocation(eq(fileID), eq(partitionID), eq(Duration.ofHours(12)));
+        verify(fileLocationProvider).getUploadFileLocation(fileID, partitionID, Duration.ofHours(12));
     }
 
     @Test
@@ -142,7 +142,7 @@ class StorageServiceImplTest {
 
             // Assert
             assertNotNull(result);
-            verify(fileLocationProvider).getUploadFileLocation(eq(datasetId), eq(partitionID), eq(Duration.ofDays(7)));
+            verify(fileLocationProvider).getUploadFileLocation(datasetId, partitionID, Duration.ofDays(7));
         }
     }
 
@@ -291,7 +291,7 @@ class StorageServiceImplTest {
 
 		// Assert
 		assertNotNull(result);
-		verify(fileLocationProvider).getUploadFileLocation(eq(fileID), eq(partitionID), eq(Duration.ofHours(12)));
+		verify(fileLocationProvider).getUploadFileLocation(fileID, partitionID, Duration.ofHours(12));
 	}
 
 	@Test
@@ -328,7 +328,7 @@ class StorageServiceImplTest {
 
 			// Assert
 			assertNotNull(result);
-			verify(fileLocationProvider).getUploadFileLocation(eq(datasetId), eq(partitionID), eq(Duration.ofDays(7)));
+			verify(fileLocationProvider).getUploadFileLocation(datasetId, partitionID, Duration.ofDays(7));
 		}
 	}
 
