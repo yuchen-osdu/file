@@ -34,11 +34,14 @@
 
     <properties>
         <aws.version>1.12.261</aws.version>
-        <awsv2.version>2.30.32</awsv2.version>
-        <os-core-lib-aws.version>7.0.1</os-core-lib-aws.version>
+        <!-- awsv2.version retained: os-core-lib-aws 8.1.0 exports aws-core/kms/dynamodb/etc.
+             pin-free, but does NOT export iam-policy-builder. This property is the sole
+             version source for the direct iam-policy-builder dep below; 2.32.7 keeps it
+             aligned with the 8.1.0 SDK stack (< 2.31 -> missing SdkUri -> StsHelperTest fails). -->
+        <awsv2.version>2.32.7</awsv2.version>
+        <os-core-lib-aws.version>8.1.0</os-core-lib-aws.version>
         <deployment.environment>dev</deployment.environment>
         <spring-boot.repackage.skip>true</spring-boot.repackage.skip>
-        <tomcat-embed-core.version>10.1.44</tomcat-embed-core.version>
         
         <!-- SonarQube properties -->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
@@ -59,25 +62,14 @@
                 <artifactId>spring-data-mongodb</artifactId>
                 <version>3.4.2</version>
             </dependency>
+            <!-- Pin bcprov-jdk18on to 1.84 (CVE-2025-14813). os-core-lib-aws 8.0.3 exports 1.84
+                 directly, but file-aws also pulls spring-cloud-starter-openfeign whose
+                 spring-cloud-context drags bcprov 1.80; removing this pin leaves a 1.80/1.84
+                 split across the reactor. Verified in Phase C: pin kept to force 1.84 deterministically. -->
             <dependency>
-                <groupId>org.apache.tomcat.embed</groupId>
-                <artifactId>tomcat-embed-core</artifactId>
-                <version>${tomcat-embed-core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-common</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-handler</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-codec-http2</artifactId>
-                <version>${netty.version}</version>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.84</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
