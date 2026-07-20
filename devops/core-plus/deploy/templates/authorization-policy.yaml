@@ -1,0 +1,22 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ printf "%s-deny-policy" .Values.conf.appName | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.conf.appName | quote }}
+  action: DENY
+  rules:
+  - from:
+    - source:
+        notNamespaces:
+        - {{ .Release.Namespace | quote }}
+    to:
+    - operation:
+        paths:
+        - /api/file/v2/file-collections/*
+        - /api/file/v2/files/storageInstructions
+        - /api/file/v2/files/retrievalInstructions
+        - /api/file/v2/files/copy

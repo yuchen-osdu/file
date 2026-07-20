@@ -1,0 +1,71 @@
+global:
+  domain: ""
+  limitsEnabled: true
+  logLevel: "ERROR"
+  tier: ""
+  autoscalingMode: "cpu"
+  otelJavaagentEnabled: "true"
+
+data:
+  #Deployment
+  requestsCpu: "65m"
+  requestsMemory: "350Mi"
+  limitsCpu: "1"
+  limitsMemory: "1G"
+  serviceAccountName: "file"
+  imagePullPolicy: "IfNotPresent"
+  image: ""
+  affinityLabelsSpot:
+    cloud.google.com/gke-provisioning:
+      - spot
+  affinityLabelsStandard:
+    cloud.google.com/gke-provisioning:
+      - standard
+  #Configmap
+  logLevel: ""
+  entitlementsHost: "http://entitlements"
+  partitionHost: "http://partition"
+  storageHost: "http://storage"
+  otelExporterEndpoint: "http://opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+
+conf:
+  configmap: "file-config"
+  appName: "file"
+  rabbitmqSecretName: "rabbitmq-secret"
+  fileMinioSecretName: "file-minio-secret"
+  fileKeycloakSecretName: "file-keycloak-secret"
+  filePostgresSecretName: "file-postgres-secret"
+  replicas: 2
+
+istio:
+  proxyCPU: "5m"
+  proxyCPULimit: "500m"
+  proxyMemory: "50Mi"
+  proxyMemoryLimit: "512Mi"
+  sidecarInject: true
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 6
+  cpu:
+    utilization: 200
+    scaleUpStabilizationWindowSeconds: 30
+    scaleUpValue: 200
+    scaleUpPeriod: 15
+    scaleDownStabilizationWindowSeconds: 150
+    scaleDownValue: 100
+    scaleDownPeriod: 15
+  requests:
+    targetType: "AverageValue"
+    targetValue: 60
+    scaleUpStabilizationWindowSeconds: 10
+    scaleUpValue: 50
+    scaleUpPeriod: 15
+    scaleDownStabilizationWindowSeconds: 60
+    scaleDownValue: 25
+    scaleDownPeriod: 60
+
+limits:
+  maxTokens: 45
+  tokensPerFill: 45
+  fillInterval: "1s"

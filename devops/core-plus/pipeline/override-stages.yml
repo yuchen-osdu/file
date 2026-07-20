@@ -1,0 +1,15 @@
+variables:
+  CIMPL_SERVICE: "file"
+  CIMPL_BUILD_PATH: "file-core-plus/cloudbuild/Dockerfile"
+  CIMPL_HELM_TIMEOUT: "--timeout 15m"
+  CIMPL_TEST_SUBDIR: testing/file-test-core
+
+cimpl-acceptance-test:
+  variables:
+    SIGNED_URL_EXPIRY_TIME_MINUTES: "15"
+
+#standby (Blue-Green) jobs
+
+cimpl-standby-acceptance-test:
+  variables:
+    SIGNED_URL_EXPIRY_TIME_MINUTES: "15"

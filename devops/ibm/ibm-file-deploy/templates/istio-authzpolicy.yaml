@@ -1,0 +1,21 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Values.conf.appName }}-authz-policy
+spec:
+  selector:
+    matchLabels:
+      {{- include "ibm-file-deploy.selectorLabels" . | nindent 6 }}
+  action: DENY
+  rules:
+  - from:
+    - source:
+        notRequestPrincipals:
+        - '*'
+    to:
+    - operation:
+        notPaths:
+        - '*/v2/api-docs'
+        - /api/file/v2/info
+        - /api/file/v2/liveness_check
+        - /api/file/v3/readiness_check
