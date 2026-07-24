@@ -36,7 +36,7 @@
 
     <!-- Azure Dependencies -->
     <core-lib-azure.version>3.0.1</core-lib-azure.version>
-    <azure-sdk.version>1.2.30</azure-sdk.version>
+    <azure-sdk.version>1.2.38</azure-sdk.version>
     <azure-spring.version>5.18.0</azure-spring.version>
     <azure-core.version>1.45.0</azure-core.version>
 
