@@ -161,11 +161,11 @@ public class StorageServiceImpl implements IStorageService {
         Map<String, List<String>> headOverrides = new HashMap<>();
 
         if (Objects.nonNull(fileName) && !fileName.isEmpty()) {
-            headOverrides.put("response-content-disposition", List.of("attachment; filename =\"" + fileName + "\""));
+            headOverrides.put(S3Helper.RESPONSE_CONTENT_DISPOSITION, List.of("attachment; filename=\"" + fileName + "\""));
         }
 
         if (Objects.nonNull(contentType) && !contentType.isEmpty()) {
-            headOverrides.put("response-content-type", List.of(contentType));
+            headOverrides.put(S3Helper.RESPONSE_CONTENT_TYPE, List.of(contentType));
         }
 
         AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder().headers(headOverrides).build();

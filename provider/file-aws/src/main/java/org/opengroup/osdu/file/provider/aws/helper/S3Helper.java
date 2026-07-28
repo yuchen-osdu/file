@@ -35,9 +35,14 @@ import org.opengroup.osdu.file.provider.aws.model.S3Location;
 
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class S3Helper {
+
+    public static final String RESPONSE_CONTENT_DISPOSITION = "response-content-disposition";
+    public static final String RESPONSE_CONTENT_TYPE = "response-content-type";
 
     private S3Helper() {
         //private constructor
@@ -67,11 +72,13 @@ public class S3Helper {
                 GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder()
                     .bucket(location.getBucket())
                     .key(location.getKey());
-                
+
                 if (requestOverrideConfiguration != null) {
-                    requestBuilder.overrideConfiguration(requestOverrideConfiguration);
+                    Map<String, List<String>> overrides = requestOverrideConfiguration.headers();
+                    applyOverride(overrides, RESPONSE_CONTENT_DISPOSITION, requestBuilder::responseContentDisposition);
+                    applyOverride(overrides, RESPONSE_CONTENT_TYPE, requestBuilder::responseContentType);
                 }
-                
+
                 GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                     .getObjectRequest(requestBuilder.build())
                     .signatureDuration(java.time.Duration.between(now(), expiration.toInstant()))
@@ -92,6 +99,16 @@ public class S3Helper {
                     .build();
                 return presigner.presignPutObject(presignRequest).url();
             }
+        }
+    }
+
+    private static void applyOverride(Map<String, List<String>> overrides, String key, Consumer<String> setter) {
+        if (overrides == null) {
+            return;
+        }
+        List<String> values = overrides.get(key);
+        if (values != null && !values.isEmpty() && values.get(0) != null && !values.get(0).isEmpty()) {
+            setter.accept(values.get(0));
         }
     }
 
