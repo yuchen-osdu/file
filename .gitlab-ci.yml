@@ -117,3 +117,15 @@ fossa-check-notice:
 
 schemathesis-tests:
   extends: .schemathesis-tests-template
+
+# AWS acceptance tests build the ACL suffix from the tenant/partition id. The
+# shared aws-global-variables.yml derives these from the group CI var
+# AWS_TENANT_NAME, which resolves to a multi-part value and yields a malformed
+# ACL (Storage 400). Override to the single-part partition id for this job only;
+# do NOT set at top-level, as CIMPL/core acceptance runs rely on the shared
+# values. DATA_PARTITION_ID covers the current refactored TestPayloadValues
+# path; TENANT_NAME covers the pre-refactor acceptance-test artifact.
+aws-acceptance-test:
+  variables:
+    DATA_PARTITION_ID: opendes
+    TENANT_NAME: opendes

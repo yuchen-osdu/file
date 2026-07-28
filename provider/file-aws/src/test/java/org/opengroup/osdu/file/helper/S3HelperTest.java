@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -48,6 +49,8 @@ import org.opengroup.osdu.file.provider.aws.model.S3Location;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -275,6 +278,78 @@ class S3HelperTest {
             S3Client actual = S3Helper.createS3Client("my-bucket", credentials);
             assertNotNull(actual);
         }
+    }
+
+    @Test
+    void testPresignedGetUrlRendersResponseOverridesAsQueryParamsNotSignedHeaders() throws Exception {
+        Map<String, List<String>> headOverrides = new HashMap<>();
+        headOverrides.put("response-content-disposition", List.of("attachment; filename=\"data.csv\""));
+        headOverrides.put("response-content-type", List.of("text/csv"));
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder().headers(headOverrides).build();
+
+        String query = presignRealGetUrl(override).getQuery();
+
+        // Overrides must ride as query-string params, not as signed headers, so a plain
+        // browser GET (which sends none of these headers) does not fail SignatureDoesNotMatch.
+        assertNotNull(queryParam(query, "response-content-disposition"), query);
+        assertNotNull(queryParam(query, "response-content-type"), query);
+        assertEquals("host", queryParam(query, "X-Amz-SignedHeaders"), query);
+    }
+
+    @Test
+    void testPresignedGetUrlWithoutOverridesSignsHostOnly() throws Exception {
+        String query = presignRealGetUrl(null).getQuery();
+
+        assertEquals("host", queryParam(query, "X-Amz-SignedHeaders"), query);
+        assertNull(queryParam(query, "response-content-disposition"), query);
+        assertNull(queryParam(query, "response-content-type"), query);
+    }
+
+    @Test
+    void testPresignedGetUrlEmptyOverridesAddsNoQueryParams() throws Exception {
+        Map<String, List<String>> headOverrides = new HashMap<>();
+        headOverrides.put("response-content-disposition", Collections.emptyList());
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder().headers(headOverrides).build();
+
+        String query = presignRealGetUrl(override).getQuery();
+
+        assertNull(queryParam(query, "response-content-disposition"), query);
+        assertNull(queryParam(query, "response-content-type"), query);
+        assertEquals("host", queryParam(query, "X-Amz-SignedHeaders"), query);
+    }
+
+    /**
+     * Presigns a GET with the real {@link S3Presigner} (only the bucket-region lookup is mocked)
+     * so the returned URL carries the actual SigV4 query string.
+     */
+    private URL presignRealGetUrl(AwsRequestOverrideConfiguration override) {
+        S3Client s3Client = mock(S3Client.class);
+        S3ClientBuilder s3ClientBuilder = mock(S3ClientBuilder.class);
+        Date expiration = new Date(System.currentTimeMillis() + 3600L * 1000L);
+
+        try (MockedStatic<S3Client> s3ClientMock = mockStatic(S3Client.class)) {
+            s3ClientMock.when(S3Client::builder).thenReturn(s3ClientBuilder);
+            when(s3ClientBuilder.credentialsProvider(any())).thenReturn(s3ClientBuilder);
+            when(s3ClientBuilder.build()).thenReturn(s3Client);
+            when(s3Client.getBucketLocation(any(GetBucketLocationRequest.class)))
+                .thenReturn(GetBucketLocationResponse.builder().locationConstraint("us-east-1").build());
+
+            return S3Helper.generatePresignedUrl(location, SdkHttpMethod.GET, expiration, credentials, override);
+        }
+    }
+
+    private static String queryParam(String query, String name) {
+        for (String pair : query.split("&")) {
+            int eq = pair.indexOf('=');
+            String key = eq >= 0 ? pair.substring(0, eq) : pair;
+            if (key.equals(name)) {
+                String value = eq >= 0 ? pair.substring(eq + 1) : "";
+                return URLDecoder.decode(value, StandardCharsets.UTF_8);
+            }
+        }
+        return null;
     }
 
 }
