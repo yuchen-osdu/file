@@ -10,16 +10,6 @@ variables:
   AZURE_COVERAGE_THRESHOLD: $AZURE_CODE_COVERAGE_THRESHOLD
   AZURE_SWAGGER_PATH: api/file/v2/swagger-ui/index.html
 
-  #AWS
-  AWS_BUILD_SUBDIR: provider/file-aws/build-aws
-  AWS_TEST_SUBDIR: testing/file-test-aws
-  AWS_CHART_SUBDIR: devops/aws/chart
-  AWS_SERVICE: file
-  AWS_SERVICE_GATEWAY: osdu-gateway
-  AWS_ENVIRONMENT: dev
-  AWS_DEPLOY_TARGET: TF
-  AWS_EKS_DEPLOYMENT_NAME: os-file
-
   #CIMPL
   CIMPL_OPENAPI_SPEC_PATH: docs/api/community/v2/openapi.yaml
   CIMPL_OPENAPI_YAML_ROUTE: /api/file/v2/api-docs.yaml
@@ -54,16 +44,7 @@ include:
   - project: "osdu/platform/ci-cd-pipelines"
     file: "cloud-providers/azure.yml"
 
-  - project: "osdu/platform/ci-cd-pipelines"
-    file: "cloud-providers/aws-global.yml"
-
-  - project: "osdu/platform/ci-cd-pipelines"
-    file: "cloud-providers/aws-maven.yml"
-
   - local: "devops/core-plus/pipeline/override-stages.yml"
-
-  - project: "osdu/platform/ci-cd-pipelines"
-    file: "cloud-providers/aws-one-pipeline.yml"
 
   - project: "osdu/platform/ci-cd-pipelines"
     file: "cloud-providers/azure-one-pipeline.yml"
@@ -118,14 +99,3 @@ fossa-check-notice:
 schemathesis-tests:
   extends: .schemathesis-tests-template
 
-# AWS acceptance tests build the ACL suffix from the tenant/partition id. The
-# shared aws-global-variables.yml derives these from the group CI var
-# AWS_TENANT_NAME, which resolves to a multi-part value and yields a malformed
-# ACL (Storage 400). Override to the single-part partition id for this job only;
-# do NOT set at top-level, as CIMPL/core acceptance runs rely on the shared
-# values. DATA_PARTITION_ID covers the current refactored TestPayloadValues
-# path; TENANT_NAME covers the pre-refactor acceptance-test artifact.
-aws-acceptance-test:
-  variables:
-    DATA_PARTITION_ID: opendes
-    TENANT_NAME: opendes

@@ -599,12 +599,6 @@
       </modules>
     </profile>
     <profile>
-      <id>aws</id>
-      <modules>
-        <module>provider/file-aws</module>
-      </modules>
-    </profile>
-    <profile>
       <id>azure</id>
       <modules>
         <module>provider/file-azure</module>
