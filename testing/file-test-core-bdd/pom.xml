@@ -23,13 +23,14 @@
   <parent>
     <groupId>org.opengroup.osdu</groupId>
     <artifactId>os-file-test</artifactId>
-    <version>0.30.0-SNAPSHOT</version>
+    <version>0.31.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <name>file-test-core-bdd</name>
   <description>BDD implementation of test project for file service</description>
   <artifactId>file-test-core-bdd</artifactId>
+  <version>0.31.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
 
@@ -47,7 +48,7 @@
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>file-core</artifactId>
-      <version>0.30.0-SNAPSHOT</version>
+      <version>0.31.0-SNAPSHOT</version>
       <exclusions>
         <!--    Exclude to fix conflict with groovy from rest-assured    -->
         <exclusion>

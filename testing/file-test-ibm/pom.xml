@@ -4,11 +4,12 @@
 	<parent>
 		<groupId>org.opengroup.osdu</groupId>
 		<artifactId>os-file-test</artifactId>
-		<version>0.30.0-SNAPSHOT</version>
+		<version>0.31.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
 	</parent>
 
   <artifactId>file-test-ibm</artifactId>
+  <version>0.31.0-SNAPSHOT</version>
 
   <properties>
     <junit-jupiter.version>5.5.2</junit-jupiter.version>
@@ -35,7 +36,7 @@
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>file-core</artifactId>
-      <version>0.30.0-SNAPSHOT</version>
+      <version>0.31.0-SNAPSHOT</version>
 
 
     </dependency>

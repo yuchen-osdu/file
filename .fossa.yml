@@ -20,10 +20,6 @@ analyze:
       type: mvn
       target: file-core-plus/pom.xml
       path: .
-    - name: file-aws
-      type: mvn
-      target: provider/file-aws/pom.xml
-      path: .
     - name: file-ibm
       type: mvn
       target: provider/file-ibm/pom.xml
