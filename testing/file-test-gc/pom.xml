@@ -13,11 +13,12 @@
 	<parent>
 		<groupId>org.opengroup.osdu</groupId>
 		<artifactId>os-file-test</artifactId>
-		<version>0.30.0-SNAPSHOT</version>
+		<version>0.31.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>file-test-gcp</artifactId>
+	<version>0.31.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 
@@ -43,7 +44,7 @@
 		<dependency>
 			<groupId>org.opengroup.osdu</groupId>
 			<artifactId>file-core</artifactId>
-			<version>0.30.0-SNAPSHOT</version>
+			<version>0.31.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opengroup.osdu</groupId>
