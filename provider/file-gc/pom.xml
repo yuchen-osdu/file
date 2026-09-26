@@ -21,11 +21,12 @@
   <parent>
     <groupId>org.opengroup.osdu</groupId>
     <artifactId>os-file</artifactId>
-    <version>0.30.0-SNAPSHOT</version>
+    <version>0.31.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>file-gc</artifactId>
+  <version>0.31.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>file-gc</name>
@@ -40,7 +41,7 @@
     <dependency>
       <groupId>org.opengroup.osdu</groupId>
       <artifactId>file-core-plus</artifactId>
-      <version>0.30.0-SNAPSHOT</version>
+      <version>0.31.0-SNAPSHOT</version>
     </dependency>
     <!--
       The root pom excludes spring-boot-starter-tomcat from the managed
