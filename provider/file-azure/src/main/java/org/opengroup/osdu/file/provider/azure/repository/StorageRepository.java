@@ -17,6 +17,7 @@
 package org.opengroup.osdu.file.provider.azure.repository;
 
 import com.azure.core.http.rest.Response;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.core.util.Context;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.storage.fluent.StorageAccountsClient;
@@ -139,15 +140,22 @@ public class StorageRepository implements IStorageRepository {
   public Boolean revokeUserDelegationKeys(Map<String, String> revokeURLRequest) {
     String resourceGroupName = revokeURLRequest.get("resourceGroup");
     String storageAccountName = revokeURLRequest.get("storageAccount");
+    String message = "Error occurred while revoking signed urls";
+
     log.debug("Revoke the signed urls for the storage account {} in Resource group {}", storageAccountName, resourceGroupName);
     Response<Void> response;
     try {
       response = storageAccountsClient.revokeUserDelegationKeysWithResponse(resourceGroupName, storageAccountName, Context.NONE);
       log.debug("Revoked the signed urls for the storage account {} in Resource group {}", storageAccountName, resourceGroupName);
+    } catch (ManagementException ex) {
+      log.error(message, ex);
+      int armStatus = ex.getResponse() == null ? HttpStatus.SC_INTERNAL_SERVER_ERROR : ex.getResponse().getStatusCode();
+      // Surface the ARM client error as-is; its body names the subscription and principal, so that stays in the logs.
+      int status = armStatus >= 400 && armStatus < 500 ? armStatus : HttpStatus.SC_INTERNAL_SERVER_ERROR;
+      throw new AppException(status, message, message, ex);
     } catch (Exception ex) {
-      String message = "Error occurred while revoking signed urls";
-      log.error(message + ex.getMessage(), ex);
-      throw new AppException(HttpStatus.SC_INTERNAL_SERVER_ERROR, message, ex.getMessage(), ex);
+      log.error(message, ex);
+      throw new AppException(HttpStatus.SC_INTERNAL_SERVER_ERROR, message, message, ex);
     }
     return response.getStatusCode() == HttpStatus.SC_OK;
   }
