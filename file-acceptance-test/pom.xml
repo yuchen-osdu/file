@@ -6,7 +6,7 @@
 
   <groupId>org.opengroup.osdu</groupId>
   <artifactId>file-acceptance-test</artifactId>
-  <version>0.30.0-SNAPSHOT</version>
+  <version>0.31.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
 
@@ -14,7 +14,7 @@
 
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
-    <os-core-test.version>0.2.0</os-core-test.version>
+    <os-core-test.version>0.5.4</os-core-test.version>
     <cucumber.version>7.34.3</cucumber.version>
     <allure.version>2.34.0</allure.version>
     <lombok.version>1.18.46</lombok.version>
