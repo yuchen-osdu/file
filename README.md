@@ -349,4 +349,4 @@ All the Swagger and OpenAPI related common properties are managed here [swagger.
 
 ## Google Cloud Implementation
 
-* All documentation for The Cloud Datastore implementation of File service is located [here](./provider/file-gc-datastore/README.md).
+The Google Cloud implementation has been moved to [gc-osdu-services](https://community.opengroup.org/osdu/platform/deployment-and-operations/base-containers-gcp/gc-osdu-services).

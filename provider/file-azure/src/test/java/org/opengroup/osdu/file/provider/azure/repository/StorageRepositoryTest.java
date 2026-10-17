@@ -1,11 +1,13 @@
 package org.opengroup.osdu.file.provider.azure.repository;
 
+import com.azure.core.http.HttpResponse;
 import com.azure.core.http.rest.SimpleResponse;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.core.util.Context;
 import com.azure.resourcemanager.storage.fluent.StorageAccountsClient;
 import com.azure.storage.blob.sas.BlobSasPermission;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,10 +32,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -180,31 +185,54 @@ public class StorageRepositoryTest {
   public void shouldRevokeUserDelegationKeysSuccessfully() {
     Map<String, String> revokeURLRequest = new HashMap<>();
     revokeURLRequest.put("resourceGroup", "testresourcegroup");
-    revokeURLRequest.put("storageAccount", "teststorageaccount");
+    revokeURLRequest.put("storageAccount", TestUtils.STORAGE_NAME);
     SimpleResponse<Void> simpleResponse = new SimpleResponse<>(null, 200, null, null);
     when(storageAccountsClient
-        .revokeUserDelegationKeysWithResponse("testresourcegroup", "teststorageaccount", Context.NONE))
+        .revokeUserDelegationKeysWithResponse("testresourcegroup", TestUtils.STORAGE_NAME, Context.NONE))
         .thenReturn(simpleResponse);
 
     assertTrue(storageRepository.revokeUserDelegationKeys(revokeURLRequest));
 
     verify(storageAccountsClient,times(1))
-        .revokeUserDelegationKeysWithResponse("testresourcegroup", "teststorageaccount", Context.NONE);
+        .revokeUserDelegationKeysWithResponse("testresourcegroup", TestUtils.STORAGE_NAME, Context.NONE);
   }
 
   @Test
   public void revokeUserDelegationKeys_shouldThrowAppException() {
     Map<String, String> revokeURLRequest = new HashMap<>();
     revokeURLRequest.put("resourceGroup", "testresourcegroup");
-    revokeURLRequest.put("storageAccount", "teststorageaccount");
+    revokeURLRequest.put("storageAccount", TestUtils.STORAGE_NAME);
     when(storageAccountsClient
-        .revokeUserDelegationKeysWithResponse("testresourcegroup", "teststorageaccount", Context.NONE))
+        .revokeUserDelegationKeysWithResponse("testresourcegroup", TestUtils.STORAGE_NAME, Context.NONE))
         .thenThrow(ManagementException.class);
 
     assertThrows(AppException.class, ()-> storageRepository.revokeUserDelegationKeys(revokeURLRequest));
 
     verify(storageAccountsClient,times(1))
-        .revokeUserDelegationKeysWithResponse("testresourcegroup", "teststorageaccount", Context.NONE);
+        .revokeUserDelegationKeysWithResponse("testresourcegroup", TestUtils.STORAGE_NAME, Context.NONE);
+  }
+
+  @Test
+  public void revokeUserDelegationKeys_shouldReturnArmForbiddenInsteadOfServerError() {
+    Map<String, String> revokeURLRequest = new HashMap<>();
+    revokeURLRequest.put("resourceGroup", "testresourcegroup");
+    revokeURLRequest.put("storageAccount", TestUtils.STORAGE_NAME);
+    HttpResponse armResponse = mock(HttpResponse.class);
+    when(armResponse.getStatusCode()).thenReturn(HttpStatus.SC_FORBIDDEN);
+    ManagementException armException = mock(ManagementException.class);
+    when(armException.getResponse()).thenReturn(armResponse);
+    lenient().when(armException.getMessage()).thenReturn(
+        "client '31d185ce' with object id 'd2cfeb58' does not have authorization over scope /subscriptions/abc");
+    when(storageAccountsClient
+        .revokeUserDelegationKeysWithResponse("testresourcegroup", TestUtils.STORAGE_NAME, Context.NONE))
+        .thenThrow(armException);
+
+    AppException thrown = assertThrows(AppException.class,
+        () -> storageRepository.revokeUserDelegationKeys(revokeURLRequest));
+
+    assertEquals(HttpStatus.SC_FORBIDDEN, thrown.getError().getCode());
+    assertFalse(thrown.getError().getMessage().contains("object id"));
+    assertFalse(thrown.getError().getMessage().contains("subscriptions"));
   }
 
   private void prepareMock(boolean isMsiEnabled) {
