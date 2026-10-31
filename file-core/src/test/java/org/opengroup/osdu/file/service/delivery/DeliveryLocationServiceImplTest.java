@@ -14,6 +14,10 @@
 
 package org.opengroup.osdu.file.service.delivery;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +28,7 @@ import org.opengroup.osdu.file.model.delivery.SignedUrl;
 import org.opengroup.osdu.file.model.delivery.SrnFileData;
 import org.opengroup.osdu.file.model.delivery.UrlSigningResponse;
 import org.opengroup.osdu.file.provider.interfaces.delivery.IDeliveryStorageService;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -38,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 // @RunWith(MockitoJUnitRunner.class)
 // @SpringBootTest(classes = { FileApplication.class })
@@ -122,5 +128,54 @@ public class DeliveryLocationServiceImplTest {
         // Assert
         assertEquals(processed, actual.getProcessed());
         assertEquals(unprocessed, actual.getUnprocessed());
+    }
+
+    @Test
+    public void shouldNotLogSignedUrlOrConnectionString() throws URISyntaxException, MalformedURLException {
+        Logger logger = (Logger) LoggerFactory.getLogger(DeliveryLocationServiceImpl.class);
+        Level originalLevel = logger.getLevel();
+        logger.setLevel(Level.DEBUG);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+
+        try {
+            String srn = "srn:file/csv:12345:";
+            String unsignedUrl = "http://storage.example.com/file.csv";
+            String secretSignedUrl = "https://storage.example.com/file.csv?sig=SECRET_SIGNATURE_KEY_12345";
+            String secretConnectionString = "AccountKey=SECRET_ACCOUNT_KEY_ABC123";
+
+            List<String> srns = List.of(srn);
+            Map<String, SrnFileData> processed = new HashMap<>();
+            processed.put(srn, new SrnFileData(null, unsignedUrl, "opendes:osdu:file:0.0.4", null));
+
+            UrlSigningResponse unsignedUrlsResponse = UrlSigningResponse.builder()
+                    .processed(processed)
+                    .unprocessed(new ArrayList<>())
+                    .build();
+            Mockito.when(searchService.GetUnsignedUrlsBySrn(Mockito.eq(srns))).thenReturn(unsignedUrlsResponse);
+
+            SignedUrl signedUrl = new SignedUrl();
+            signedUrl.setUri(new URI(unsignedUrl));
+            signedUrl.setUrl(new URL(secretSignedUrl));
+            signedUrl.setCreatedAt(Instant.now());
+            signedUrl.setConnectionString(secretConnectionString);
+
+            Mockito.when(storageService.createSignedUrl(Mockito.eq(srn), Mockito.eq(unsignedUrl), Mockito.any())).thenReturn(signedUrl);
+            ReflectionTestUtils.setField(CUT, "headers", new DpsHeaders());
+
+            CUT.getSignedUrlsBySrn(srns);
+
+            boolean signedUrlLogged = listAppender.list.stream()
+                    .anyMatch(event -> event.getFormattedMessage().contains("SECRET_SIGNATURE_KEY_12345"));
+            boolean connectionStringLogged = listAppender.list.stream()
+                    .anyMatch(event -> event.getFormattedMessage().contains("SECRET_ACCOUNT_KEY_ABC123"));
+
+            assertFalse(signedUrlLogged);
+            assertFalse(connectionStringLogged);
+        } finally {
+            logger.detachAppender(listAppender);
+            logger.setLevel(originalLevel);
+        }
     }
 }

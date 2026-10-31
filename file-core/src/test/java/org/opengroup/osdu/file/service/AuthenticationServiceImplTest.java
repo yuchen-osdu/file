@@ -21,6 +21,10 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.opengroup.osdu.file.TestUtils.AUTHORIZATION_TOKEN;
 import static org.opengroup.osdu.file.TestUtils.PARTITION;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengroup.osdu.file.ReplaceCamelCase;
 import org.opengroup.osdu.file.exception.OsduUnauthorizedException;
 import org.opengroup.osdu.file.provider.interfaces.IAuthenticationService;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(ReplaceCamelCase.class)
@@ -100,6 +105,32 @@ class AuthenticationServiceImplTest {
     assertThat(thrown1)
         .isInstanceOf(OsduUnauthorizedException.class)
         .hasMessage("Missing authorization token");
+  }
+
+  @Test
+  void shouldNotLogAuthorizationToken() {
+    Logger logger = (Logger) LoggerFactory.getLogger(AuthenticationServiceImpl.class);
+    Level originalLevel = logger.getLevel();
+    logger.setLevel(Level.DEBUG);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    try {
+      String secretToken = "Bearer secret-token-value-12345";
+      authenticationService.checkAuthentication(secretToken, PARTITION);
+
+      boolean tokenLogged = listAppender.list.stream()
+          .anyMatch(event -> event.getFormattedMessage().contains(secretToken));
+      assertThat(tokenLogged).isFalse();
+
+      boolean partitionLogged = listAppender.list.stream()
+          .anyMatch(event -> event.getFormattedMessage().contains(PARTITION));
+      assertThat(partitionLogged).isTrue();
+    } finally {
+      logger.detachAppender(listAppender);
+      logger.setLevel(originalLevel);
+    }
   }
 
 }

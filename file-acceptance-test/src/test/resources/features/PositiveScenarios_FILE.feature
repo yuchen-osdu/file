@@ -1,7 +1,7 @@
 Feature: File Service API integration test
 
   Background:
-    Given I generate user token and set request headers with "PRIVATE_TENANT1"
+    Given I generate user token and set request headers with "DATA_PARTITION_ID"
 
   #Positive scenario for FILE service
   @File
@@ -17,8 +17,8 @@ Feature: File Service API integration test
     #And content of the file uploaded <outputFilePath> and downloaded <inputFilePath> files is same
     Examples:
       | getReponseStatusCode | inputPayload                               | postReponseStatusCode | tenant            | inputFilePath                              | outputFilePath                                            | outPathToCreateFile                                                          |
-      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "PRIVATE_TENANT1" | "/sample_upload_files/test.csv"            | "/sample_downloaded_files/test_downloaded.csv"            | "/src/test/resources/sample_downloaded_files/test_downloaded.csv"            |
-      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "PRIVATE_TENANT1" | "/sample_upload_files/TestDownloadUrl.txt" | "/sample_downloaded_files/TestDownloadUrl_downloaded.txt" | "/src/test/resources/sample_downloaded_files/TestDownloadUrl_downloaded.txt" |
+      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "DATA_PARTITION_ID" | "/sample_upload_files/test.csv"            | "/sample_downloaded_files/test_downloaded.csv"            | "/src/test/resources/sample_downloaded_files/test_downloaded.csv"            |
+      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "DATA_PARTITION_ID" | "/sample_upload_files/TestDownloadUrl.txt" | "/sample_downloaded_files/TestDownloadUrl_downloaded.txt" | "/src/test/resources/sample_downloaded_files/TestDownloadUrl_downloaded.txt" |
 
   #Positive scenario for FILE service
   @File
@@ -32,7 +32,7 @@ Feature: File Service API integration test
 
     Examples:
       | getReponseStatusCode | inputPayload                               | postReponseStatusCode | tenant            | inputFilePath                   |
-      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "PRIVATE_TENANT1" | "/sample_upload_files/test.csv" |
+      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "DATA_PARTITION_ID" | "/sample_upload_files/test.csv" |
 
   @File
   Scenario Outline: Verification for expiry time feature of downloadURL
@@ -46,7 +46,7 @@ Feature: File Service API integration test
 
     Examples:
       | getReponseStatusCode | inputPayload                               | postReponseStatusCode | tenant            | inputFilePath                   | outputFilePath                                 | outPathToCreateFile                                               |
-      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "PRIVATE_TENANT1" | "/sample_upload_files/test.csv" | "/sample_downloaded_files/test_downloaded.csv" | "/src/test/resources/sample_downloaded_files/test_downloaded.csv" |
+      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "DATA_PARTITION_ID" | "/sample_upload_files/test.csv" | "/sample_downloaded_files/test_downloaded.csv" | "/src/test/resources/sample_downloaded_files/test_downloaded.csv" |
 
   @File
   Scenario Outline: Verify that checksum is added to the file's metadata
@@ -59,4 +59,4 @@ Feature: File Service API integration test
 
     Examples:
       | getResponseStatusCode | inputPayload                                    | postResponseStatusCode | tenant            | inputFilePath                   |
-      | "200"                 |"/input_payloads/File_Calculate_Checksum.json"   |"201"                   |"PRIVATE_TENANT1"  | "/sample_upload_files/test.csv" |
+      | "200"                 |"/input_payloads/File_Calculate_Checksum.json"   |"201"                   |"DATA_PARTITION_ID"  | "/sample_upload_files/test.csv" |

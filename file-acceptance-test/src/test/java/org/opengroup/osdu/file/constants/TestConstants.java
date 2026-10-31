@@ -18,7 +18,6 @@
 package org.opengroup.osdu.file.constants;
 
 import lombok.experimental.UtilityClass;
-import org.opengroup.osdu.core.test.config.EnvLoader;
 
 /**
  * Environment-backed partition ids and payload placeholder tokens used in test JSON files.
@@ -32,6 +31,4 @@ public class TestConstants {
   public static final String ACL_OWNERS_GROUP = "<acl_owners>";
   public static final String LEGAL_TAGS = "<legal_tags>";
   public static final String REGISTRY_ID = "<registry_id>";
-
-  public static final String PRIVATE_TENANT1 = EnvLoader.get("PRIVATE_TENANT1");
 }
