@@ -9,6 +9,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ExtendWith(SpringExtension.class)
 public class HealthCheckApiTest {
@@ -18,15 +19,15 @@ public class HealthCheckApiTest {
 
   @Test
   public void test_livenessCheck() {
-    ResponseEntity<String> response = healthCheckApi.livenessCheck();
+    ResponseEntity<Void> response = healthCheckApi.livenessCheck();
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("File service is alive", response.getBody());
+    assertNull(response.getBody());
   }
 
   @Test
   public void test_readinessCheck() {
-    ResponseEntity<String> response = healthCheckApi.readinessCheck();
+    ResponseEntity<Void> response = healthCheckApi.readinessCheck();
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("File service is ready", response.getBody());
+    assertNull(response.getBody());
   }
 }

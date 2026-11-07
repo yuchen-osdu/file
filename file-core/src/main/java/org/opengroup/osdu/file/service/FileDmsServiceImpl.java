@@ -145,6 +145,11 @@ public class FileDmsServiceImpl implements IDmsService {
   private String getStorageFilePath(Record datasetRegistryRecord){
     String storageFilePath;
 
+    if (datasetRegistryRecord == null || datasetRegistryRecord.getData() == null) {
+      throw new AppException(HttpStatus.SC_BAD_REQUEST, "Bad Request",
+          "Dataset metadata must contain a non-null data object");
+    }
+
     if (!datasetRegistryRecord.getData().containsKey("DatasetProperties")) {
       throw new AppException(HttpStatus.SC_BAD_REQUEST, "Bad Request",
           "Dataset Metadata does not contain dataset properties");

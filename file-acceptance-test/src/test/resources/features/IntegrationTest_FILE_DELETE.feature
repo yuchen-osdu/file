@@ -1,7 +1,7 @@
 Feature: File Service DELETE API integration test
 
   Background: 
-    Given I generate user token and set request headers with "PRIVATE_TENANT1"
+    Given I generate user token and set request headers with "DATA_PARTITION_ID"
 
   @File
   Scenario Outline: Verify that metadata is deleted by delete endpoint and gives 404 for invalid ID
@@ -16,4 +16,4 @@ Feature: File Service DELETE API integration test
 
     Examples: 
       | getReponseStatusCode | inputPayload                               | postReponseStatusCode | tenant            | deleteReponseStatusCode | invalideDeleteReponseStatusCode | inputFilePath                   |
-      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "PRIVATE_TENANT1" | "204"                   | "404"                           | "/sample_upload_files/test.csv" |
+      | "200"                | "/input_payloads/File_CorrectPayload.json" | "201"                 | "DATA_PARTITION_ID" | "204"                   | "404"                           | "/sample_upload_files/test.csv" |
