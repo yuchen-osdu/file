@@ -16,7 +16,9 @@
 
 package org.opengroup.osdu.file.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -87,7 +89,11 @@ public class FileCollectionDmsServiceImpl implements IDmsService {
   final ICloudStorageOperation cloudStorageOperation;
   final IFileCollectionStorageUtilService storageUtilService;
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  // Keep the Jackson 2 defaults: reject unknown dataset properties, accept null for primitives
+  private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+      .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+      .build();
 
   @Override
   public StorageInstructionsResponse getStorageInstructions() {

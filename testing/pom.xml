@@ -21,18 +21,19 @@
 
   <groupId>org.opengroup.osdu</groupId>
   <artifactId>os-file-test</artifactId>
-  <version>0.30.0-SNAPSHOT</version>
+  <version>${revision}</version>
   <packaging>pom</packaging>
 
   <name>file-test</name>
   <description>Integration tests for File service</description>
 
   <properties>
+    <revision>0.31.0-SNAPSHOT</revision>
     <java.version>17</java.version>
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <os-core-common.version>7.1.0</os-core-common.version>
+    <os-core-common.version>8.4.0</os-core-common.version>
     <lombok.version>1.18.42</lombok.version>
     <junit.version>4.13.2</junit.version>
     <junit-jupiter.version>5.12.2</junit-jupiter.version>
@@ -59,10 +60,6 @@
 
   <modules>
     <module>file-test-core</module>
-    <module>file-test-gc</module>
-    <module>file-test-azure</module>
-    <module>file-test-aws</module>
-    <module>file-test-ibm</module>
     <module>file-test-baremetal</module>
   </modules>
 
@@ -71,7 +68,7 @@
       <dependency>
         <groupId>org.opengroup.osdu</groupId>
         <artifactId>file-test-core</artifactId>
-        <version>0.30.0-SNAPSHOT</version>
+        <version>${revision}</version>
       </dependency>
       <dependency>
         <groupId>org.opengroup.osdu</groupId>
@@ -203,6 +200,31 @@
                 </requireSameVersions>
               </rules>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.8.0</version>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

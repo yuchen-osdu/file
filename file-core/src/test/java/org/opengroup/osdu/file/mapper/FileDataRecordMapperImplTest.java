@@ -36,10 +36,12 @@ import org.opengroup.osdu.file.model.filemetadata.filedetails.FileSourceInfo;
 import org.opengroup.osdu.file.model.storage.Record;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import io.restassured.path.json.JsonPath;
 
@@ -54,7 +56,7 @@ public class FileDataRecordMapperImplTest {
     public static final String KIND = "wks:tenant1:file";
 
     @Test
-    public void fileMetadataToRecord() throws ApplicationException, JsonProcessingException {
+    public void fileMetadataToRecord() throws ApplicationException, JacksonException {
         fileDataRecordMapper = new FileMetadataRecordMapper(new ObjectMapper());
 
         FileSourceInfo fileSourceInfo = FileSourceInfo.builder().fileSource("stage/file.txt").build();
@@ -86,7 +88,7 @@ public class FileDataRecordMapperImplTest {
     }
 
     @Test
-    public void recordToRecordVersionTest() throws ApplicationException, JsonMappingException, JsonProcessingException {
+    public void recordToRecordVersionTest() throws ApplicationException, DatabindException, JacksonException {
         fileDataRecordMapper = new FileMetadataRecordMapper(new ObjectMapper());
         Record record = getRecordObj();
         Map<String, Object> jsonMap = strToJsonMap(FILE_DATA);
@@ -96,7 +98,7 @@ public class FileDataRecordMapperImplTest {
     }
 
     @Test
-    public void recordToRecordVersionWithMetaBlockTest() throws ApplicationException, JsonMappingException, JsonProcessingException {
+    public void recordToRecordVersionWithMetaBlockTest() throws ApplicationException, DatabindException, JacksonException {
         fileDataRecordMapper = new FileMetadataRecordMapper(new ObjectMapper());
         Record record = getRecordObj();
         Map<String, Object> jsonMap = strToJsonMap(FILE_DATA);
@@ -118,8 +120,10 @@ public class FileDataRecordMapperImplTest {
 	}
 
     @Test
-    public void recordToRecordVersionParseError() throws ApplicationException, JsonMappingException, JsonProcessingException {
-        fileDataRecordMapper = new FileMetadataRecordMapper(new ObjectMapper());
+    public void recordToRecordVersionParseError() throws ApplicationException, DatabindException, JacksonException {
+        // Jackson 3 ignores unknown properties by default; enable it to provoke the parse error
+        fileDataRecordMapper = new FileMetadataRecordMapper(
+            JsonMapper.builder().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build());
         Record record = getRecordObj();
         String jsonString = "{ \"SchemaFormateID\": \"string\", \"PreloadFilePath\": \"string\", \"Source\": \"/osdu-user/1609348736017-2020-12-30-17-18-56-017/943ee9537b8c4254a2fdc1f9c8684f79\", \"FileSize\": 0, \"Name\": \"File\", \"EncodingFormatTypeID\": \"string\", \"Endian\": \"BIG\", \"LossyCompressionIndicator\": true, \"CompressionMethodTypeID\": \"string\", \"CompressionLevel\": 0, \"Checksum\": \"string\", \"VectorHeaderMapping\": [ { \"KeyName\": \"string\", \"WordFormat\": \"string\", \"WordWidth\": 0, \"Position\": 0, \"UoM\": \"string\", \"ScalarIndicator\": \"STANDARD\", \"ScalarOverride\": 0 } ], \"relationships\": { \"parentEntity\": { \"confidence\": 1, \"id\": \"data_partition:namespace:entity_845934c40e8d922bc57b678990d55722\", \"name\": \"Survey ST2016\", \"version\": 0 }, \"relatedItems\": { \"confidences\": [ 0 ], \"ids\": [ \"string\" ], \"names\": [ \"string\" ], \"versions\": [ 0 ] } }, \"ExtensionProperties\": { \"Classification\": \"Raw File\", \"Description\": \"An text further describing this file example.\", \"ExternalIds\": [ \"string\" ], \"FileDateCreated\": {}, \"FileDateModified\": {}, \"FileContentsDetails\": { \"TargetKind\": \"os:npd:wellbore:1:*.*\", \"FileType\": \"csv\", \"FrameOfReference\": [ { \"kind\": \"CRS\", \"name\": \"[NAD27 * OGP-Usa Conus / North Dakota South [3202115851]ft]\", \"persistableReference\": \"scaleOffset:scale:0.3048006096012192offset:0.0symbol:ftUSbaseMeasurement:ancestry:Lengthtype:UMtype:USO}\", \"propertyNames\": [ \"elevationFromMsl\", \"totalDepthMdDriller\", \"wellHeadProjected\" ], \"propertyValues\": [ \"F\", \"ftUS\", \"deg\" ], \"uncertainty\": 0 } ], \"ExtensionProperties\": { \"kind\": \"os:npd:csvFileExtDetails:1.0.0\" }, \"ParentReference\": \"CSBE0417\" } } }";
         Map<String, Object> jsonMap = strToJsonMap(jsonString);
@@ -148,7 +152,7 @@ public class FileDataRecordMapperImplTest {
     }
 
     @Test
-    public void recordToRecordVersionWithTagsTest() throws ApplicationException, JsonMappingException, JsonProcessingException {
+    public void recordToRecordVersionWithTagsTest() throws ApplicationException, DatabindException, JacksonException {
         fileDataRecordMapper = new FileMetadataRecordMapper(new ObjectMapper());
         Record record = getRecordObj();
         record.setData(strToJsonMap(FILE_DATA));
@@ -166,14 +170,14 @@ public class FileDataRecordMapperImplTest {
         return record;
     }
 
-    private Map<String, Object> strToJsonMap(String jsonStr) throws JsonProcessingException, JsonMappingException {
+    private Map<String, Object> strToJsonMap(String jsonStr) throws JacksonException, DatabindException {
 		TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
 		};
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.readValue(jsonStr, typeRef);
 	}
 
-    private String extractFileSource(Object obj) throws JsonProcessingException {
+    private String extractFileSource(Object obj) throws JacksonException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		String jsonStr = mapper.writeValueAsString(obj);

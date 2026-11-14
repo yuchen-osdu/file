@@ -57,6 +57,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -192,7 +193,7 @@ public class FileCollectionDmsServiceImplTest {
     verify(storageFactory, times(1)).create(headers);
     verify(dataLakeStorageService, times(1)).getRecords(eq(testRequest.getDatasetRegistryIds()));
     verify(storageException, times(2)).getHttpResponse();
-    verify(storageException, times(2)).getMessage();
+    verify(storageException, atLeast(2)).getMessage(); // logback also reads the message when logging the cause
     verify(httpResponse, times(1)).getResponseCode();
 
   }

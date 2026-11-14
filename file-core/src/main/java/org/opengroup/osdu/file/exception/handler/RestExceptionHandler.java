@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.exc.MismatchedInputException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -171,7 +171,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     return buildResponseEntity(errorResponse);
   }
 
-  @ExceptionHandler({ JsonParseException.class, IllegalStateException.class,
+  @ExceptionHandler({ StreamReadException.class, IllegalStateException.class,
       MismatchedInputException.class, IllegalArgumentException.class })
   protected ResponseEntity<Object> handleInvalidBody(RuntimeException ex,
       WebRequest request) {

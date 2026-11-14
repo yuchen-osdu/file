@@ -16,7 +16,7 @@
 
 package org.opengroup.osdu.file;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -34,10 +34,10 @@ import org.opengroup.osdu.file.provider.interfaces.ILocationMapper;
 import org.opengroup.osdu.file.provider.interfaces.IStorageService;
 import org.opengroup.osdu.file.util.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -81,13 +81,13 @@ public class FileFlowTest {
   private static final String SIGNED_URL_KEY = "SignedURL";
   private static final String TEMP_USER = "temp-user";
 
-  @MockBean
+  @MockitoBean
   private IAuthorizationService authorizationService;
-  @MockBean
+  @MockitoBean
   private IFileLocationRepository fileLocationRepository;
-  @MockBean
+  @MockitoBean
   private ILocationMapper locationMapper;
-  @MockBean
+  @MockitoBean
   private IStorageService storageService;
 
   @Autowired

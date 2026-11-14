@@ -5,14 +5,14 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.media.StringSchema;
-import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
-import org.opengroup.osdu.core.common.model.http.DpsHeaders;
+import org.opengroup.osdu.core.common.openapi.OpenApiContractProperties;
+import org.opengroup.osdu.core.common.openapi.springdoc.DataPartitionHeaderOperationCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -75,18 +75,8 @@ public class SwaggerConfiguration {
   }
 
   @Bean
-  public OperationCustomizer operationCustomizer() {
-    return (operation, handlerMethod) -> {
-      Parameter dataPartitionId = new Parameter()
-          .name(DpsHeaders.DATA_PARTITION_ID)
-          .description("Tenant Id")
-          .in("header")
-          .required(true)
-          .schema(new StringSchema());
-      if (!operation.getOperationId().equals("revokeURL"))
-        operation = operation.addParametersItem(dataPartitionId);
-      return operation;
-    };
+  public OperationCustomizer operationCustomizer(ObjectProvider<OpenApiContractProperties> contractProperties) {
+    return DataPartitionHeaderOperationCustomizer.create(contractProperties.getIfAvailable());
   }
 
 }

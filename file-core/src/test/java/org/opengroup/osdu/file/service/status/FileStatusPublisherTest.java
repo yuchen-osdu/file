@@ -21,7 +21,7 @@ import org.opengroup.osdu.core.common.status.AttributesBuilder;
 import org.opengroup.osdu.core.common.status.IEventPublisher;
 import org.opengroup.osdu.file.model.storage.Record;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 @ExtendWith(MockitoExtension.class)
 class FileStatusPublisherTest {
@@ -54,7 +54,7 @@ class FileStatusPublisherTest {
     }
 
     @Test
-    void testPublishStartStatus() throws JsonProcessingException {
+    void testPublishStartStatus() throws JacksonException {
         when(attributesBuilder.createAttributesMap()).thenReturn(attributesMap);
 
         fileStatusPublisher.publishInProgressStatus();
@@ -64,7 +64,7 @@ class FileStatusPublisherTest {
     }
 
     @Test
-    void testPublishFailureStatus() throws JsonProcessingException {
+    void testPublishFailureStatus() throws JacksonException {
         when(attributesBuilder.createAttributesMap()).thenReturn(attributesMap);
 
         fileStatusPublisher.publishFailureStatus(ERROR_MESSAGE, 400);
@@ -74,7 +74,7 @@ class FileStatusPublisherTest {
     }
 
     @Test
-    void testPublishFailureStatusWithHttpResponse() throws JsonProcessingException {
+    void testPublishFailureStatusWithHttpResponse() throws JacksonException {
         Record record = new Record();
         record.setId(RECORD_ID);
 
@@ -87,7 +87,7 @@ class FileStatusPublisherTest {
     }
 
     @Test
-    void testPublishSuccessStatus() throws JsonProcessingException {
+    void testPublishSuccessStatus() throws JacksonException {
         Record record = new Record();
         record.setId(RECORD_ID);
         when(attributesBuilder.createAttributesMap()).thenReturn(attributesMap);

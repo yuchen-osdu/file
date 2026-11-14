@@ -16,8 +16,7 @@
 
 package org.opengroup.osdu.file.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -125,9 +124,9 @@ public class FileLocationApi {
   @GetMapping("/v2/files/uploadURL")
   @PreAuthorize("@authorizationFilter.hasPermission('" + FileServiceRole.EDITORS+ "')")
   public LocationResponse getLocationFile(@Parameter(description = "The Time for which Signed URL to be valid. Accepted Regex patterns are \"^[0-9]+M$\", \"^[0-9]+H$\", \"^[0-9]+D$\" denoting Integer values in Minutes, Hours, Days respectively. In absence of this parameter the URL would be valid for 1 Hour.",
-      example = "5M")  @RequestParam(required = false, name = "expiryTime") String expiryTime) throws JsonProcessingException {
+      example = "5M")  @RequestParam(required = false, name = "expiryTime") String expiryTime) {
     SignedUrlParameters signedUrlParameters = new SignedUrlParameters(expiryTime);
-    LocationRequest req = (new ObjectMapper()).readValue("{}", LocationRequest.class);
+    LocationRequest req = JsonMapper.shared().readValue("{}", LocationRequest.class);
     LocationResponse locationResponse = locationService.getLocation(req, headers, signedUrlParameters);
     log.debug("Generated upload URL: fileID={}, location={}, expiryTime={}",
         locationResponse != null ? locationResponse.getFileID() : "null", expiryTime);

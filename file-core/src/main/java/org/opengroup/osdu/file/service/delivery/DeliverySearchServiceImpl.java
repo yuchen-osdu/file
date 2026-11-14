@@ -16,7 +16,6 @@
 
 package org.opengroup.osdu.file.service.delivery;
 
-import com.google.api.client.http.HttpMethods;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import lombok.extern.java.Log;
@@ -172,7 +171,7 @@ public class DeliverySearchServiceImpl implements IDeliverySearchService {
         query.setQuery(generateSrnQueryString(ids));
         FetchServiceHttpRequest request = FetchServiceHttpRequest
                 .builder()
-                .httpMethod(HttpMethods.POST)
+                .httpMethod("POST")
                 .url(SEARCH_QUERY_RECORD_HOST)
                 .headers(dpsHeaders)
                 .body(query.toString()).build();

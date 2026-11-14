@@ -10,9 +10,9 @@ import org.opengroup.osdu.file.model.filemetadata.filedetails.FileData;
 import org.opengroup.osdu.file.model.storage.Record;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -51,7 +51,7 @@ public class FileMetadataRecordMapper {
 			String tags = mapper.writeValueAsString(map);
 			Gson gson = new GsonBuilder().create();
 			return gson.fromJson(tags, JsonObject.class);
-		} catch (JsonProcessingException | JsonSyntaxException e) {
+		} catch (JacksonException | JsonSyntaxException e) {
 			throw new ApplicationException("Error occurred in tags payload parsing", e);
 		}
 
@@ -78,7 +78,7 @@ public class FileMetadataRecordMapper {
 			TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
 			};
 			return mapper.readValue(schemaString, typeRef);
-		} catch (JsonProcessingException | JsonSyntaxException e) {
+		} catch (JacksonException | JsonSyntaxException e) {
 			throw new ApplicationException("Error occurred in data payload parsing", e);
 		}
 	}
@@ -87,7 +87,7 @@ public class FileMetadataRecordMapper {
 		try {
 			String jsonStr = mapper.writeValueAsString(jsonMap);
 			return mapper.readValue(jsonStr, FileData.class);
-		} catch (JsonProcessingException e) {
+		} catch (JacksonException e) {
 			throw new ApplicationException("Error occurred in data payload parsing", e);
 		}
 	}

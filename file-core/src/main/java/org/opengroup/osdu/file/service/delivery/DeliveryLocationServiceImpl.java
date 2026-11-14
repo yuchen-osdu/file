@@ -61,7 +61,7 @@ public class DeliveryLocationServiceImpl implements IDeliveryLocationService {
 
             log.debug("before getSignedUrl for key {} and unsignedUrl {}", entry.getKey(), value.getUnsignedUrl());
             SignedUrl signedUrl = storageService.createSignedUrl(entry.getKey(), value.getUnsignedUrl(), headers.getAuthorization());
-            log.debug("process getSignedUrl. got signedUrl {}", signedUrl);
+            log.debug("process getSignedUrl for key {}", entry.getKey());
 
             boolean isOvds = entry.getKey().toLowerCase().contains("ovds");
             if (signedUrl != null && !isOvds && signedUrl.getUrl() != null) {

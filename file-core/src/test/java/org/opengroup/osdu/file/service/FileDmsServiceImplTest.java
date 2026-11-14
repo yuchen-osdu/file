@@ -59,6 +59,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -250,7 +252,7 @@ public class FileDmsServiceImplTest {
     verify(storageFactory, times(1)).create(headers);
     verify(dataLakeStorageService, times(1)).getRecords(eq(testRequest.getDatasetRegistryIds()));
     verify(storageException, times(2)).getHttpResponse();
-    verify(storageException, times(2)).getMessage();
+    verify(storageException, atLeast(2)).getMessage(); // logback also reads the message when logging the cause
     verify(httpResponse, times(1)).getResponseCode();
 
   }
@@ -304,6 +306,35 @@ public class FileDmsServiceImplTest {
     Assertions.assertEquals("Bad Request", exception.getError().getReason());
     Assertions.assertEquals("Dataset Metadata does not contain dataset properties", exception.getError().getMessage());
 
+  }
+
+  @Test
+  public void copyDatasetsToPersistentLocationNullDataReturnsBadRequest() {
+    Record record = new Record();
+    record.setId(TEST_DATASET_ID);
+    record.setData(null);
+    List<Record> records = new ArrayList<>();
+    records.add(record);
+
+    AppException exception = assertThrows(AppException.class,
+        () -> dmsService.copyDatasetsToPersistentLocation(records));
+
+    Assertions.assertEquals(org.apache.http.HttpStatus.SC_BAD_REQUEST, exception.getError().getCode());
+    Assertions.assertEquals("Bad Request", exception.getError().getReason());
+    Assertions.assertEquals("Dataset metadata must contain a non-null data object", exception.getError().getMessage());
+    verify(cloudStorageOperation, never()).copyFiles(any());
+  }
+
+  @Test
+  public void copyDatasetsToPersistentLocationNullRecordReturnsBadRequest() {
+    List<Record> records = new ArrayList<>();
+    records.add(null);
+
+    AppException exception = assertThrows(AppException.class,
+        () -> dmsService.copyDatasetsToPersistentLocation(records));
+
+    Assertions.assertEquals(org.apache.http.HttpStatus.SC_BAD_REQUEST, exception.getError().getCode());
+    verify(cloudStorageOperation, never()).copyFiles(any());
   }
 
   @Test
