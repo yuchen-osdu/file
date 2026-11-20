@@ -30,7 +30,8 @@ First you need to set variables in **values.yaml** file using any code editor. S
 
 | Name | Description | Type | Default |Required |
 |------|-------------|------|---------|---------|
-| **global.domain** | your domain for the external endpoint, ex `example.com` | string | - | yes |
+| **global.domain** | your domain, ex `example.com`. Not used by the chart templates (the `VirtualService` that used it was removed). Use `global.hostname` for the route host | string | - | no |
+| **global.hostname** | host the `HTTPRoute` attaches to when `httpRoute.hostnames` is empty, ex `osdu.example.com` | string | `""` | only if `httpRoute.enabled` is true and `httpRoute.hostnames` is empty |
 | **global.limitsEnabled** | whether CPU and memory limits are enabled | boolean | true | yes |
 | **global.dataPartitionId** | data partition ID (used as secret name prefix) | string | "osdu" | yes |
 
@@ -67,6 +68,49 @@ First you need to set variables in **values.yaml** file using any code editor. S
 | **conf.filePostgresSecretName** | secret for Postgres | string | "file-postgres-secret" | yes |
 | **conf.replicas** | number of deployment replicas | integer | 1 | yes |
 
+### Routing (HTTPRoute)
+
+The chart owns the routing for the service. It renders a Gateway API `HTTPRoute`, disabled by default. The chart no longer ships an Istio `VirtualService`.
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|----------|
+**httpRoute.enabled** | render the `HTTPRoute` | boolean | `false` | yes
+**httpRoute.name** | route name. When empty the name is `<release>-route`, which differs from any route of the same name defined outside this chart | string | `""` | no
+**httpRoute.parentRefs** | gateways the route attaches to | list | `cimpl-gateway` in `istio-system` | yes
+**httpRoute.hostnames** | hosts the route serves. When empty, `global.hostname` is used | list | `[]` | one of `httpRoute.hostnames` or `global.hostname`
+**httpRoute.routes** | one rule per entry, see below | list | `/api/file/` | yes
+
+The render fails when `httpRoute.enabled` is true and both `httpRoute.hostnames` and `global.hostname` are empty, so the route is never exposed on all hosts.
+
+Each entry of `httpRoute.routes` accepts:
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|----------|
+**path** | path to match | string | - | yes
+**pathType** | match type, `PathPrefix` or `Exact` | string | `PathPrefix` | no
+**serviceName** | backend Service name | string | `conf.appName` | no
+**port** | backend Service port | integer | `80` | no
+**filters** | Gateway API filters, for example `URLRewrite` | list | - | no
+
+Example, a route with a rewrite and another port:
+
+```yaml
+httpRoute:
+  enabled: true
+  hostnames:
+    - osdu.example.com
+  routes:
+    - path: /api/file/
+    - path: /other/
+      port: 9002
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+```
+
 ### ISTIO variables
 
 | Name | Description | Type | Default |Required |
@@ -83,6 +127,18 @@ Run this command from within this directory:
 
 ```console
 helm install core-plus-file-deploy .
+```
+
+To expose the service through the Gateway API:
+
+```console
+helm install core-plus-file-deploy . --set httpRoute.enabled=true --set global.hostname=osdu.example.com
+```
+
+To check the rendered route without installing:
+
+```console
+helm template core-plus-file-deploy . --set httpRoute.enabled=true --set global.hostname=osdu.example.com -s templates/httproute.yaml
 ```
 
 ## Uninstalling the Chart
