@@ -297,7 +297,6 @@ For example:  for the given `storage account`.
 > **Note**:
 >- The Request is a Map of Properties to manage the input parameters required to revoke Signed URLs.
 >- Each CSP will have its own implementation and request properties based on the revoke Logic supported by the provider.
->- Example: For `Azure` [ Resource Group and Storage Account Name] is required to revoke URLs. Refer [Azure README](./provider/file-azure/README.md)
 
 Request example:
 
@@ -330,6 +329,12 @@ The File service has several Service Provider Interfaces that the classes need t
 | StorageService         | Obligatory to implement | `file-core/src/main/java/.../provider/interfaces/StorageService`         |
 | ValidationService      | Optional to implement   | `file-core/src/main/java/.../provider/interfaces/ValidationService`      |
 
+## Prerequisites
+
+- [Maven 3.9.16+](https://maven.apache.org/download.cgi)
+- [JDK 25](https://adoptium.net/)
+- [Lombok 1.18.40 or later](https://projectlombok.org/setup/maven)
+
 ## Running integration tests
 
 Integration tests are located in a separate project for each cloud in the ```testing``` directory under the project root directory.
@@ -344,9 +349,9 @@ All the Swagger and OpenAPI related common properties are managed here [swagger.
 #### Server Url(full path vs relative path) configuration
 - `api.server.fullUrl.enabled=true` It will generate full server url in the OpenAPI swagger
 - `api.server.fullUrl.enabled=false` It will generate only the contextPath only
-- default value is false (Currently only in Azure it is enabled)
+- default value is false
 [Reference]:(https://springdoc.org/faq.html#_how_is_server_url_generated) 
 
 ## Google Cloud Implementation
 
-* All documentation for The Cloud Datastore implementation of File service is located [here](./provider/file-gc-datastore/README.md).
+The Google Cloud implementation has been moved to [gc-osdu-services](https://community.opengroup.org/osdu/platform/deployment-and-operations/base-containers-gcp/gc-osdu-services).

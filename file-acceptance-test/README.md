@@ -4,18 +4,17 @@ You will need the following environment variables.
 
 | name                             | value                              | description                   | sensitive? | source | required |
 |----------------------------------|------------------------------------|-------------------------------|------------|--------|----------|
-| `FILE_SERVICE_HOST`              | ex `http://localhost:8080/api/file` | Endpoint of File service host                                  | no         | -      | yes      |
+| `HOST`                           | ex `https://api.example.com`        | OSDU API base URL (used by `os-core-test` to derive service endpoints) | no         | -      | yes      |
 | `DATA_PARTITION_ID`              | ex `opendes`                        | Default data partition id used by `os-core-test` clients       | no         | -      | yes      |
-| `PRIVATE_TENANT1`                | ex `opendes`                        | Partition used by explicit File API header override scenarios   | no         | -      | yes      |
 | `ACL_OWNERS`                     | ex `data.default.owners`            | ACL owner group placeholder replacement                         | no         | -      | no       |
 | `ACL_VIEWERS`                    | ex `data.default.viewers`           | ACL viewer group placeholder replacement                        | no         | -      | no       |
 | `ENTITLEMENTS_DOMAIN`            | ex `group`                          | Domain used to build ACL principal placeholders                 | no         | -      | no       |
-| `LEGAL_TAG`                      | ex `opendes`                        | Legal tag placeholder replacement                               | no         | -      | no       |
 | `SIGNED_URL_EXPIRY_TIME_MINUTES` | ex `15`                             | Wait time in signed URL expiration scenarios                    | no         | -      | no       |
 
 Notes:
-- `PRIVATE_TENANT2`, `SHARED_TENANT`, and `TENANT_NAME` are no longer used by the current acceptance test code.
-- Tenant columns in some legacy feature tables are retained for compatibility, but partition selection is now driven by `DATA_PARTITION_ID` and explicit header overrides.
+- `PRIVATE_TENANT1`, `PRIVATE_TENANT2`, `SHARED_TENANT`, and `TENANT_NAME` are no longer used by the current acceptance test code. Each runner creates `{partition}-file-{timestamp}` and deletes it when that runner finishes.
+- `FILE_SERVICE_HOST` is no longer used; the service URL is derived from `HOST` via the `os-core-test` framework.
+- Partition selection is driven by `DATA_PARTITION_ID`.
 
 Authentication can be provided as OIDC config:
 
@@ -45,7 +44,7 @@ Execute following command to build code and run all the integration tests:
 Integration tests run in three phases via `maven-failsafe-plugin`:
 
 1. **Pre-integration** (`PreIntegrationTestsRunner`, `@Startup`) — validates the File service `/info` endpoint before main scenarios
-2. **Integration** (`FileTestsRunner`, `FileDmsTestsRunner`, `@File` / `@FileDMS`) — main acceptance scenarios; per-scenario cleanup runs via `FileScenarioHooks`
+2. **Integration** (`FileTestsRunner`, `FileDmsTestsRunner`, `@File` / `@FileDMS`) — main acceptance scenarios; per-scenario cleanup runs via `FileScenarioSetup`. Each runner creates a legal tag in `@BeforeAll` through `LegalTagsClient` and deletes it in `@AfterAll` via `teardown()`.
 3. **Post-integration** (`TearDownTestsRunner`, `@TearDown`) — final tear-down phase after all scenarios complete
 
 ## License

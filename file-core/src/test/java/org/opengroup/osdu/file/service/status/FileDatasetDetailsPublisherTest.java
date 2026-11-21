@@ -18,7 +18,7 @@ import org.opengroup.osdu.core.common.model.status.Message;
 import org.opengroup.osdu.core.common.status.AttributesBuilder;
 import org.opengroup.osdu.core.common.status.IEventPublisher;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 @ExtendWith(MockitoExtension.class)
 class FileDatasetDetailsPublisherTest {
@@ -40,7 +40,7 @@ class FileDatasetDetailsPublisherTest {
     private FileDatasetDetailsPublisher fileDatasetDetailsPublisher;
 
     @Test
-    void testDatasetDetailsPublishSuccess() throws JsonProcessingException {
+    void testDatasetDetailsPublishSuccess() throws JacksonException {
 
         Map<String, String> attributesMap = createAttributesMap();
 

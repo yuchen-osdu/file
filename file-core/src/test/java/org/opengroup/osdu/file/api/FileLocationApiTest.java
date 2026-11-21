@@ -1,6 +1,9 @@
 package org.opengroup.osdu.file.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import tools.jackson.core.JacksonException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +28,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class FileLocationApiTest {
 
   private final String response = "response";
@@ -85,7 +89,7 @@ public class FileLocationApiTest {
   }
 
   @Test
-  public void test_getLocationFile() throws JsonProcessingException {
+  public void test_getLocationFile() throws JacksonException {
     SignedUrlParameters signedUrlParameters = new SignedUrlParameters("7D");
     when(locationService.getLocation(any(LocationRequest.class), eq(headers), eq(signedUrlParameters))).thenReturn(locationResponse);
 

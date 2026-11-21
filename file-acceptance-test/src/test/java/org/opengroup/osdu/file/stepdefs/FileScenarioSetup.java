@@ -40,7 +40,7 @@ public class FileScenarioSetup {
 
   static final List<UserType> SUPPORTED_USER_TYPES = List.of(UserType.PRIVILEGED_USER);
   static final List<ServiceType> SUPPORTED_SERVICE_TYPES =
-      List.of(ServiceType.FILE_V2, ServiceType.STORAGE_V2);
+      List.of(ServiceType.FILE_V2, ServiceType.STORAGE_V2, ServiceType.LEGAL_V1);
 
   private static final UserType DEFAULT_USER = UserType.PRIVILEGED_USER;
 
