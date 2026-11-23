@@ -335,6 +335,26 @@ The File service has several Service Provider Interfaces that the classes need t
 - [JDK 25](https://adoptium.net/)
 - [Lombok 1.18.40 or later](https://projectlombok.org/setup/maven)
 
+## Running unit tests and coverage
+
+From the repository root, run the core and core-plus suites with a clean JaCoCo report:
+
+```sh
+TZ=UTC mvn -B -ntp -s .mvn/community-maven.settings.xml \
+  -pl file-core-plus -am clean test jacoco:report
+```
+
+Reports are written to `file-core/target/site/jacoco/index.html` and
+`file-core-plus/target/site/jacoco/index.html` (with XML and CSV alongside them).
+The GitLab `core_code_coverage` job checks the **total instruction coverage** of
+each module against 80%; Sonar new-code coverage is a separate metric.
+
+Core-plus tests exercise partition-scoped copy/delete operations, partial batch
+failures, signed URL options, collection upload/retrieval instructions, tenant bucket
+fallbacks, OSM metadata queries and pagination, and request path-length boundaries.
+Storage and database drivers are mocked; no live cloud credentials are required.
+The existing signed-object-null and stateless security-chain regressions also run.
+
 ## Running integration tests
 
 Integration tests are located in a separate project for each cloud in the ```testing``` directory under the project root directory.
