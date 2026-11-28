@@ -26,8 +26,6 @@ public class AuthUtil {
         String app_resource_id = System.getProperty("AZURE_AD_APP_RESOURCE_ID", System.getenv("AZURE_AD_APP_RESOURCE_ID"));
         token = new AzureServicePrincipal().getIdToken(sp_id, sp_secret, tenant_id, app_resource_id);
       }
-    } else if ("ibm".equals(vendor)) {
-      System.out.println("Token generation code for ibm comes here");
     }
     System.out.println("Bearer " + token);
     return "Bearer " + token;

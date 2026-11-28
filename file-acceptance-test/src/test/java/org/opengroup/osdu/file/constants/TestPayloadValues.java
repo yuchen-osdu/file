@@ -28,8 +28,10 @@ public class TestPayloadValues {
 
   private static final String DEFAULT_FILE_KIND_SUFFIX = ":wks:dataset--File.Generic:1.0.0";
 
+  private static String suiteLegalTag;
+
   public static String tenantName() {
-    return firstConfigured("DATA_PARTITION_ID", "PRIVATE_TENANT1", "data");
+    return firstConfigured("DATA_PARTITION_ID", "data");
   }
 
   public static String cloudDomain() {
@@ -44,8 +46,15 @@ public class TestPayloadValues {
     return firstConfigured("ACL_OWNERS", "data.default.owners");
   }
 
+  public static void setSuiteLegalTag(String legalTag) {
+    suiteLegalTag = legalTag;
+  }
+
   public static String legalTag() {
-    return firstConfigured("LEGAL_TAG", "osdu-public-usa-dataset");
+    if (suiteLegalTag == null || suiteLegalTag.isBlank()) {
+      throw new IllegalStateException("Suite legal tag has not been created");
+    }
+    return suiteLegalTag;
   }
 
   public static String fileKind() {
@@ -68,15 +77,4 @@ public class TestPayloadValues {
     return fallback;
   }
 
-  private static String firstConfigured(String primaryKey, String secondaryKey, String fallback) {
-    String primary = EnvLoader.get(primaryKey);
-    if (primary != null && !primary.isBlank()) {
-      return primary;
-    }
-    String secondary = EnvLoader.get(secondaryKey);
-    if (secondary != null && !secondary.isBlank()) {
-      return secondary;
-    }
-    return fallback;
-  }
 }

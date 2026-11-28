@@ -24,9 +24,10 @@ import org.opengroup.osdu.file.service.storage.StorageException;
 import org.opengroup.osdu.file.util.ExpiryTimeUtil;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -92,7 +93,7 @@ public class FileDeliveryService {
   private String extractFileSource(Object obj) {
     try {
       return extractJsonValue(obj, FileMetadataConstant.FILE_SOURCE_PATH);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new AppException(HttpStatus.SC_NOT_FOUND, "Not Found.",
           "Unable to parse fileSource in data.DatasetProperties.FileSourceInfo.FileSource");
     }
@@ -101,19 +102,19 @@ public class FileDeliveryService {
   private String extractFileName(Record recordToHandle) {
     try {
       return extractJsonValue(recordToHandle, FileMetadataConstant.FILE_NAME_PATH);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.warning("Unable to parse fileName in data.DatasetProperties.FileSourceInfo.Name", e);
       return null;
     }
   }
 
-  private String extractJsonValue(Object value, String dotSeparatedPath) throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
+  private String extractJsonValue(Object value, String dotSeparatedPath) throws JacksonException {
+    ObjectMapper mapper = JsonMapper.shared();
     JsonNode node = mapper.readTree(mapper.writeValueAsString(value));
     for (String segment : dotSeparatedPath.split("\\.")) {
       node = node.path(segment);
     }
-    return node.isMissingNode() || node.isNull() ? null : node.asText();
+    return node.isMissingNode() || node.isNull() ? null : node.asString("");
   }
 
     private String getContentTypeFromFileName(String fileName) {

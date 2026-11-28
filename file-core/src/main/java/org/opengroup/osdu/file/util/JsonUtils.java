@@ -16,17 +16,19 @@
 
 package org.opengroup.osdu.file.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.io.IOException;
 import lombok.experimental.UtilityClass;
 import org.opengroup.osdu.core.common.exception.CoreException;
 import org.opengroup.osdu.file.model.jackson.ForceStringDeserializer;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 @UtilityClass
 public class JsonUtils {
@@ -36,12 +38,16 @@ public class JsonUtils {
   static {
     SimpleModule module = new SimpleModule();
     module.addDeserializer(String.class, new ForceStringDeserializer());
-    mapper = new ObjectMapper()
+    // Jackson 2 defaults this mapper relied on are pinned, because Jackson 3 changed them
+    mapper = JsonMapper.builder()
         .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
         .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
-        .setSerializationInclusion(Include.NON_NULL)
-        .registerModule(module)
-        .findAndRegisterModules();
+        .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+        .changeDefaultPropertyInclusion(incl -> JsonInclude.Value.construct(Include.NON_NULL, Include.NON_NULL))
+        .addModule(module)
+        .findAndAddModules()
+        .build();
   }
 
   /**
@@ -53,7 +59,7 @@ public class JsonUtils {
   public <T> T toObject(String value, Class<T> clazz) {
     try {
       return mapper.readValue(value, clazz);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new CoreException("Could not convert json string to object. String: " + value, e);
     }
   }
@@ -67,7 +73,7 @@ public class JsonUtils {
   public <T> T toObject(String value, TypeReference<T> typeReference) {
     try {
       return mapper.readValue(value, typeReference);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new CoreException("Could not convert json string to object. String: " + value, e);
     }
   }
@@ -80,7 +86,7 @@ public class JsonUtils {
   public <T> String toJson(T value) {
     try {
       return mapper.writeValueAsString(value);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new CoreException("Could not convert object to JSON. Object: " + value, e);
     }
   }

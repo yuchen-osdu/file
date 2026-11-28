@@ -45,7 +45,7 @@ Universally Unique Identifier (UUID) to be stored in FileID. If a FileID is prov
 It is a **GET** endpoint to upload a file. This generates a temporary signed URL to upload a file.
 
   **Note:**
-  * The signed URL expires after a set time that varies as per environment. For example Azure implementation has the expiry limit set to 7 days.
+  * The signed URL expires after a set time that varies as per environment.
   * When generated URL expires it cannot be used anymore to upload a file. The user should request a new signed URL.
   * When the generated URL expires in the middle of file upload the upload will continue, and the file will be uploaded.
 

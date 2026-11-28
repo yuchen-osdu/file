@@ -20,13 +20,30 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 @Data
 @Builder
 public class ApiError {
 
+  // Jackson 3 writes enums with toString() ("400 BAD_REQUEST"); keep the Jackson 2 wire value "BAD_REQUEST".
+  @JsonSerialize(using = HttpStatusNameSerializer.class)
   private HttpStatus status;
   private String message;
   private List<String> errors;
 
+  static class HttpStatusNameSerializer extends StdSerializer<HttpStatus> {
+
+    HttpStatusNameSerializer() {
+      super(HttpStatus.class);
+    }
+
+    @Override
+    public void serialize(HttpStatus value, JsonGenerator generator, SerializationContext context) {
+      generator.writeString(value.name());
+    }
+  }
 }

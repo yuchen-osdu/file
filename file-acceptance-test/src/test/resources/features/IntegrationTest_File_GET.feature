@@ -1,7 +1,7 @@
 Feature: File service API integration test
 
   Background:
-    Given I generate user token and set request headers with "PRIVATE_TENANT1"
+    Given I generate user token and set request headers with "DATA_PARTITION_ID"
 
   #Negative scenario for GET /files/uploadURL
   @File
